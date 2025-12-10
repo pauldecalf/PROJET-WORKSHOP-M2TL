@@ -1,65 +1,167 @@
-import Image from "next/image";
+import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold text-gray-900 mb-4">
+            🏢 Système IoT de Gestion de Salles
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-xl text-gray-600">
+            API REST pour la gestion de dispositifs IoT, capteurs et salles connectées
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* Cards */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          {/* Documentation API Swagger */}
+          <Link
+            href="/api-docs"
+            className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow border-2 border-blue-200 hover:border-blue-400"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <div className="flex items-center mb-4">
+              <span className="text-4xl mr-4">📚</span>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Documentation API
+              </h2>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Documentation interactive Swagger UI pour tester toutes les routes API
+            </p>
+            <div className="flex items-center text-blue-600 font-semibold">
+              Ouvrir Swagger UI
+              <span className="ml-2">→</span>
+            </div>
+          </Link>
+
+          {/* Exemple API - Devices */}
+          <Link
+            href="/api/devices"
+            className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow border-2 border-green-200 hover:border-green-400"
           >
-            Documentation
-          </a>
+            <div className="flex items-center mb-4">
+              <span className="text-4xl mr-4">📟</span>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Liste des Devices
+              </h2>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Voir tous les dispositifs IoT (ESP32, capteurs) en JSON
+            </p>
+            <div className="flex items-center text-green-600 font-semibold">
+              GET /api/devices
+              <span className="ml-2">→</span>
+            </div>
+          </Link>
+
+          {/* Statut des salles */}
+          <Link
+            href="/api/rooms/status"
+            className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow border-2 border-purple-200 hover:border-purple-400"
+          >
+            <div className="flex items-center mb-4">
+              <span className="text-4xl mr-4">🚪</span>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Statut des Salles
+              </h2>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Disponibilité temps réel de toutes les salles (disponible, occupée)
+            </p>
+            <div className="flex items-center text-purple-600 font-semibold">
+              GET /api/rooms/status
+              <span className="ml-2">→</span>
+            </div>
+          </Link>
+
+          {/* Spec OpenAPI */}
+          <Link
+            href="/api/swagger"
+            className="bg-white rounded-lg shadow-lg p-8 hover:shadow-xl transition-shadow border-2 border-orange-200 hover:border-orange-400"
+          >
+            <div className="flex items-center mb-4">
+              <span className="text-4xl mr-4">📋</span>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Spec OpenAPI
+              </h2>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Spécification OpenAPI 3.0 au format JSON (pour Postman, Insomnia, etc.)
+            </p>
+            <div className="flex items-center text-orange-600 font-semibold">
+              GET /api/swagger
+              <span className="ml-2">→</span>
+            </div>
+          </Link>
         </div>
-      </main>
+
+        {/* Info section */}
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <h3 className="text-2xl font-bold text-gray-900 mb-4">
+            🚀 Démarrage rapide
+          </h3>
+          <div className="space-y-4 text-gray-700">
+            <div>
+              <h4 className="font-semibold text-lg mb-2">1. Configuration MongoDB</h4>
+              <code className="bg-gray-100 px-3 py-1 rounded text-sm">
+                echo "MONGODB_URI=mongodb://localhost:27017/workshop" &gt; .env.local
+              </code>
+            </div>
+            <div>
+              <h4 className="font-semibold text-lg mb-2">2. Initialiser la base de données</h4>
+              <code className="bg-gray-100 px-3 py-1 rounded text-sm">
+                npm run seed
+              </code>
+              <p className="text-sm text-gray-600 mt-1">
+                Crée automatiquement ~17 000 documents de test
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-lg mb-2">3. Tester les API</h4>
+              <p className="text-sm text-gray-600">
+                Utilisez <Link href="/api-docs" className="text-blue-600 hover:underline">Swagger UI</Link> pour tester interactivement toutes les routes
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Features */}
+        <div className="grid md:grid-cols-3 gap-6 mt-8">
+          <div className="bg-white rounded-lg shadow p-6 text-center">
+            <div className="text-4xl mb-3">🗄️</div>
+            <h4 className="font-bold text-lg mb-2">13 Collections MongoDB</h4>
+            <p className="text-sm text-gray-600">
+              Buildings, Rooms, Devices, Sensors, Measurements, NFC, etc.
+            </p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6 text-center">
+            <div className="text-4xl mb-3">🔌</div>
+            <h4 className="font-bold text-lg mb-2">7+ Routes API REST</h4>
+            <p className="text-sm text-gray-600">
+              CRUD complet pour devices, mesures, salles et statuts
+            </p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6 text-center">
+            <div className="text-4xl mb-3">📊</div>
+            <h4 className="font-bold text-lg mb-2">Time-Series Data</h4>
+            <p className="text-sm text-gray-600">
+              Stockage optimisé des mesures (température, CO2, humidité)
+            </p>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center mt-12 text-gray-600">
+          <p>
+            📚 Documentation complète disponible dans les fichiers <code className="bg-gray-200 px-2 py-1 rounded text-sm">*.md</code>
+          </p>
+          <p className="mt-2">
+            Built with <span className="text-red-500">❤️</span> using Next.js, MongoDB & Swagger
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

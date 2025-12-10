@@ -1,8 +1,25 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Projet Workshop - Système IoT de Gestion de Salles
 
-## Getting Started
+Application Next.js avec MongoDB pour la gestion de dispositifs IoT, capteurs et salles de classe.
 
-First, run the development server:
+## 🚀 Démarrage rapide
+
+**Nouveau sur le projet ? Consultez le [Guide de démarrage rapide (QUICKSTART.md)](./QUICKSTART.md) !**
+
+### Installation en 3 étapes
+
+```bash
+# 1. Installer les dépendances
+npm install
+
+# 2. Créer .env.local avec votre URI MongoDB
+echo "MONGODB_URI=mongodb://localhost:27017/workshop" > .env.local
+
+# 3. Initialiser la base de données avec des données de test
+npm run seed
+```
+
+### Lancer le serveur
 
 ```bash
 npm run dev
@@ -14,11 +31,71 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📁 Structure du projet
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+├── app/
+│   ├── api/              # Routes API REST
+│   │   ├── devices/      # Gestion des devices IoT
+│   │   ├── rooms/        # Gestion des salles
+│   │   └── sensors/      # Gestion des capteurs et mesures
+│   └── page.tsx          # Page d'accueil
+├── lib/
+│   └── mongodb.ts        # Configuration MongoDB
+├── models/               # Modèles Mongoose (13 collections)
+│   ├── Building.ts
+│   ├── Room.ts
+│   ├── Device.ts
+│   ├── Sensor.ts
+│   ├── SensorMeasurement.ts
+│   └── ...
+└── types/
+    └── enums.ts          # Énumérations TypeScript
+```
+
+## 🔌 API Routes
+
+Consultez [API_ROUTES.md](./API_ROUTES.md) pour la documentation complète des endpoints.
+
+**Exemples de routes disponibles :**
+- `GET /api/devices` - Liste des devices IoT
+- `POST /api/devices` - Créer un device
+- `GET /api/rooms/status` - Statut des salles en temps réel
+- `GET /api/sensors/[id]/measurements` - Mesures d'un capteur
+
+## 🗄️ Base de données
+
+Le projet utilise **MongoDB** avec **Mongoose** comme ODM.
+
+**Collections principales :**
+- `buildings` - Bâtiments
+- `rooms` - Salles de classe
+- `devices` - Boîtiers IoT
+- `sensors` - Capteurs (température, humidité, CO2, etc.)
+- `sensormeasurements` - Mesures time-series
+- `roomstatuses` - Statut temps réel des salles
+- `nfcevents` - Événements NFC anonymisés
+- `devicecommands` - Commandes envoyées aux devices
+- `otaupdates` - Mises à jour OTA
+
+Voir [MONGODB_SETUP.md](./MONGODB_SETUP.md) pour plus de détails.
+
+## 🛠️ Technologies utilisées
+
+- **Next.js 16** - Framework React
+- **TypeScript** - Typage statique
+- **MongoDB** - Base de données NoSQL
+- **Mongoose 9** - ODM pour MongoDB
+- **Tailwind CSS** - Framework CSS
+
+## 📚 Documentation
+
+- **[Swagger UI](http://localhost:3000/api-docs)** - Documentation API interactive 🎯
+- [Configuration MongoDB](./MONGODB_SETUP.md)
+- [Routes API](./API_ROUTES.md)
+- [Documentation Swagger](./SWAGGER_DOCUMENTATION.md)
 
 ## Learn More
 
