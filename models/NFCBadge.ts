@@ -28,8 +28,7 @@ const NFCBadgeSchema = new Schema<INFCBadge>(
   }
 );
 
-// Index pour la recherche rapide
-NFCBadgeSchema.index({ badgeHash: 1 });
+// L'index sur badgeHash est déjà créé automatiquement par "unique: true"
 
 export const NFCBadge: Model<INFCBadge> =
   mongoose.models.NFCBadge || mongoose.model<INFCBadge>('NFCBadge', NFCBadgeSchema);

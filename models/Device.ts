@@ -62,7 +62,7 @@ const DeviceSchema = new Schema<IDevice>(
 );
 
 // Index pour les recherches courantes
-DeviceSchema.index({ serialNumber: 1 });
+// L'index sur serialNumber est déjà créé automatiquement par "unique: true"
 DeviceSchema.index({ roomId: 1 });
 DeviceSchema.index({ status: 1 });
 

@@ -46,8 +46,7 @@ const UserSchema = new Schema<IUser>(
   }
 );
 
-// Index pour la recherche par email
-UserSchema.index({ email: 1 });
+// L'index sur email est déjà créé automatiquement par "unique: true"
 
 export const User: Model<IUser> =
   mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
