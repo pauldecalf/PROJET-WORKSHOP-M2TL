@@ -27,11 +27,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Vérifier si l'utilisateur est déjà connecté
-    const storedUser = localStorage.getItem('user');
-    const accessToken = localStorage.getItem('accessToken');
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('user');
+      const accessToken = localStorage.getItem('accessToken');
 
-    if (storedUser && accessToken) {
-      setUser(JSON.parse(storedUser));
+      if (storedUser && accessToken) {
+        setUser(JSON.parse(storedUser));
+      }
     }
 
     setLoading(false);
@@ -52,18 +54,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await response.json();
 
     // Stocker les tokens et les infos utilisateur
-    localStorage.setItem('accessToken', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
-    localStorage.setItem('user', JSON.stringify(data.user));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      localStorage.setItem('user', JSON.stringify(data.user));
+    }
 
     setUser(data.user);
   };
 
   const logout = () => {
     // Supprimer les tokens
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+    }
 
     setUser(null);
     router.push('/admin/login');

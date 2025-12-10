@@ -25,8 +25,15 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
     // Vérifier l'authentification
     const storedUser = localStorage.getItem('user');
     const accessToken = localStorage.getItem('accessToken');
@@ -40,7 +47,7 @@ export default function AdminDashboard() {
 
     // Charger les stats
     loadStats();
-  }, [router]);
+  }, [router, isMounted]);
 
   const loadStats = async () => {
     try {
@@ -58,9 +65,11 @@ export default function AdminDashboard() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+    }
     router.push('/admin/login');
   };
 

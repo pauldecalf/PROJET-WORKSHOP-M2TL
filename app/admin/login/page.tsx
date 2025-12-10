@@ -30,9 +30,11 @@ export default function AdminLoginPage() {
       }
 
       // Stocker les tokens
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
 
       // Rediriger vers le dashboard admin
       router.push('/admin/dashboard');

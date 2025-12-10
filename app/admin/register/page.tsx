@@ -58,9 +58,11 @@ export default function AdminRegisterPage() {
       }
 
       // Connexion automatique après inscription
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
 
       // Rediriger vers le dashboard
       router.push('/admin/dashboard');
