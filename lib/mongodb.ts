@@ -10,10 +10,10 @@ if (!MONGODB_URI) {
  * Global est utilisé ici pour maintenir une connexion en cache pendant le développement.
  * Cela évite les connexions épuisées pendant le rechargement à chaud de Next.js.
  */
-let cached = global.mongoose;
+let cached = (global as any).mongoose;
 
 if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+  cached = (global as any).mongoose = { conn: null, promise: null };
 }
 
 async function connectDB() {
@@ -26,9 +26,9 @@ async function connectDB() {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
       console.log('✅ Connecté à MongoDB');
-      return mongoose;
+      return mongooseInstance;
     });
   }
 

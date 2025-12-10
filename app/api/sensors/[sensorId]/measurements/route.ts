@@ -96,18 +96,19 @@ import { SensorMeasurement, Sensor } from '@/models';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { sensorId: string } }
+  { params }: { params: Promise<{ sensorId: string }> }
 ) {
   try {
     await connectDB();
 
+    const resolvedParams = await params;
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
     const limit = parseInt(searchParams.get('limit') || '100');
 
     // Vérifier que le capteur existe
-    const sensor = await Sensor.findById(params.sensorId);
+    const sensor = await Sensor.findById(resolvedParams.sensorId);
     if (!sensor) {
       return NextResponse.json(
         {
@@ -119,7 +120,7 @@ export async function GET(
     }
 
     // Construire la requête
-    const query: any = { sensorId: params.sensorId };
+    const query: any = { sensorId: resolvedParams.sensorId };
 
     if (startDate || endDate) {
       query.measuredAt = {};
@@ -159,8 +160,9 @@ export async function GET(
       data: measurements,
     });
   } catch (error: any) {
+    const resolvedParams = await params;
     console.error(
-      `Erreur GET /api/sensors/${params.sensorId}/measurements:`,
+      `Erreur GET /api/sensors/${resolvedParams.sensorId}/measurements:`,
       error
     );
     return NextResponse.json(
@@ -230,15 +232,16 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { sensorId: string } }
+  { params }: { params: Promise<{ sensorId: string }> }
 ) {
   try {
     await connectDB();
 
+    const resolvedParams = await params;
     const body = await request.json();
 
     // Vérifier que le capteur existe
-    const sensor = await Sensor.findById(params.sensorId);
+    const sensor = await Sensor.findById(resolvedParams.sensorId);
     if (!sensor) {
       return NextResponse.json(
         {
@@ -251,7 +254,7 @@ export async function POST(
 
     // Créer la mesure
     const measurement = await SensorMeasurement.create({
-      sensorId: params.sensorId,
+      sensorId: resolvedParams.sensorId,
       measuredAt: body.measuredAt || new Date(),
       numericValue: body.numericValue,
       rawValue: body.rawValue,
@@ -265,8 +268,9 @@ export async function POST(
       { status: 201 }
     );
   } catch (error: any) {
+    const resolvedParams = await params;
     console.error(
-      `Erreur POST /api/sensors/${params.sensorId}/measurements:`,
+      `Erreur POST /api/sensors/${resolvedParams.sensorId}/measurements:`,
       error
     );
     return NextResponse.json(

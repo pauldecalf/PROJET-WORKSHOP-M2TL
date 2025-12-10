@@ -38,12 +38,13 @@ import { Device } from '@/models';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
-    const device = await Device.findById(params.id)
+    const resolvedParams = await params;
+    const device = await Device.findById(resolvedParams.id)
       .populate('roomId')
       .lean();
 
@@ -62,7 +63,8 @@ export async function GET(
       data: device,
     });
   } catch (error: any) {
-    console.error(`Erreur GET /api/devices/${params.id}:`, error);
+    const resolvedParams = await params;
+    console.error(`Erreur GET /api/devices/${resolvedParams.id}:`, error);
     return NextResponse.json(
       {
         success: false,
@@ -130,16 +132,17 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
+    const resolvedParams = await params;
     const body = await request.json();
 
     // Mettre à jour le device
     const device = await Device.findByIdAndUpdate(
-      params.id,
+      resolvedParams.id,
       {
         $set: {
           ...body,
@@ -166,7 +169,8 @@ export async function PATCH(
       data: device,
     });
   } catch (error: any) {
-    console.error(`Erreur PATCH /api/devices/${params.id}:`, error);
+    const resolvedParams = await params;
+    console.error(`Erreur PATCH /api/devices/${resolvedParams.id}:`, error);
     return NextResponse.json(
       {
         success: false,
@@ -215,12 +219,13 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
-    const device = await Device.findByIdAndDelete(params.id);
+    const resolvedParams = await params;
+    const device = await Device.findByIdAndDelete(resolvedParams.id);
 
     if (!device) {
       return NextResponse.json(
@@ -237,7 +242,8 @@ export async function DELETE(
       message: 'Device supprimé avec succès',
     });
   } catch (error: any) {
-    console.error(`Erreur DELETE /api/devices/${params.id}:`, error);
+    const resolvedParams = await params;
+    console.error(`Erreur DELETE /api/devices/${resolvedParams.id}:`, error);
     return NextResponse.json(
       {
         success: false,
