@@ -4,19 +4,19 @@ import { Device, DeviceConfig } from '@/models';
 
 /**
  * @swagger
- * /api/devices/{uid}/config:
+ * /api/iot/devices/{serialNumber}/config:
  *   get:
- *     summary: Récupérer la configuration d'un device (par UID)
- *     description: Utilisé par les devices IoT pour récupérer leur config au démarrage (utilise serialNumber)
+ *     summary: Récupérer la configuration d'un device (par serialNumber)
+ *     description: Utilisé par les devices IoT pour récupérer leur config au démarrage
  *     tags:
- *       - Devices
+ *       - IoT Devices
  *     parameters:
  *       - in: path
- *         name: uid
+ *         name: serialNumber
  *         required: true
  *         schema:
  *           type: string
- *         description: Serial Number du device (UID)
+ *         description: Serial Number du device
  *         example: "ESP32-ABC123"
  *     responses:
  *       200:
@@ -39,15 +39,15 @@ import { Device, DeviceConfig } from '@/models';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ uid: string }> }
+  { params }: { params: Promise<{ serialNumber: string }> }
 ) {
   try {
     await connectDB();
 
-    const { uid } = await params;
+    const { serialNumber } = await params;
 
     // Trouver le device par son serialNumber
-    const device = await Device.findOne({ serialNumber: uid }).lean();
+    const device = await Device.findOne({ serialNumber }).lean();
 
     if (!device) {
       return NextResponse.json(
@@ -87,8 +87,8 @@ export async function GET(
       config,
     });
   } catch (error: any) {
-    const { uid } = await params;
-    console.error(`Erreur GET /api/devices/${uid}/config:`, error);
+    const { serialNumber } = await params;
+    console.error(`Erreur GET /api/iot/devices/${serialNumber}/config:`, error);
     return NextResponse.json(
       {
         success: false,

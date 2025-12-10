@@ -4,19 +4,19 @@ import { Device, Sensor, SensorMeasurement } from '@/models';
 
 /**
  * @swagger
- * /api/devices/{uid}/measurements:
+ * /api/iot/devices/{serialNumber}/measurements:
  *   post:
- *     summary: Enregistrer des mesures (par UID)
- *     description: Utilisé par les devices IoT pour envoyer leurs mesures (utilise serialNumber)
+ *     summary: Enregistrer des mesures (par serialNumber)
+ *     description: Utilisé par les devices IoT pour envoyer leurs mesures
  *     tags:
- *       - Devices
+ *       - IoT Devices
  *     parameters:
  *       - in: path
- *         name: uid
+ *         name: serialNumber
  *         required: true
  *         schema:
  *           type: string
- *         description: Serial Number du device (UID)
+ *         description: Serial Number du device
  *         example: "ESP32-ABC123"
  *     requestBody:
  *       required: true
@@ -70,12 +70,12 @@ import { Device, Sensor, SensorMeasurement } from '@/models';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ uid: string }> }
+  { params }: { params: Promise<{ serialNumber: string }> }
 ) {
   try {
     await connectDB();
 
-    const { uid } = await params;
+    const { serialNumber } = await params;
     const body = await request.json();
 
     // Validation
@@ -90,7 +90,7 @@ export async function POST(
     }
 
     // Trouver le device par son serialNumber
-    const device = await Device.findOne({ serialNumber: uid });
+    const device = await Device.findOne({ serialNumber });
 
     if (!device) {
       return NextResponse.json(
@@ -126,7 +126,7 @@ export async function POST(
 
       const sensorId = sensorMap.get(sensorType);
       if (!sensorId) {
-        console.warn(`Capteur ${sensorType} non trouvé pour le device ${uid}`);
+        console.warn(`Capteur ${sensorType} non trouvé pour le device ${serialNumber}`);
         continue;
       }
 
@@ -149,8 +149,8 @@ export async function POST(
       { status: 201 }
     );
   } catch (error: any) {
-    const { uid } = await params;
-    console.error(`Erreur POST /api/devices/${uid}/measurements:`, error);
+    const { serialNumber } = await params;
+    console.error(`Erreur POST /api/iot/devices/${serialNumber}/measurements:`, error);
     return NextResponse.json(
       {
         success: false,

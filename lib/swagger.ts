@@ -68,6 +68,10 @@ MongoDB avec 13 collections :
         description: '📟 Gestion des boîtiers IoT (CRUD)',
       },
       {
+        name: 'IoT Devices',
+        description: '🤖 Routes pour les devices IoT (config et mesures par serialNumber)',
+      },
+      {
         name: 'Device Commands',
         description: '🎛️ Commandes de contrôle des devices (shutdown, reboot, LED)',
       },
