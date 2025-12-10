@@ -5,7 +5,7 @@ import { CommandType, CommandStatus } from '@/types/enums';
 
 /**
  * @swagger
- * /api/devices/{id}/commands/led:
+ * /api/devices/by-id/{id}/commands/led:
  *   post:
  *     summary: Contrôler la LED d'un device
  *     description: Envoie une commande pour contrôler la LED (couleur, mode, durée)

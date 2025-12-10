@@ -4,7 +4,7 @@ import { Room } from '@/models';
 
 /**
  * @swagger
- * /api/rooms/{id}:
+ * /api/rooms/by-id/{id}:
  *   get:
  *     summary: Récupérer une salle spécifique
  *     description: Retourne les détails d'une salle par son ID
@@ -78,7 +78,7 @@ export async function GET(
 
 /**
  * @swagger
- * /api/rooms/{id}:
+ * /api/rooms/by-id/{id}:
  *   patch:
  *     summary: Mettre à jour une salle
  *     description: Met à jour partiellement les informations d'une salle

@@ -4,7 +4,7 @@ import { RoomStatus, Room } from '@/models';
 
 /**
  * @swagger
- * /api/rooms/{id}/status:
+ * /api/rooms/by-id/{id}/status:
  *   get:
  *     summary: Récupérer le statut d'une salle spécifique
  *     description: Retourne le statut de disponibilité d'une salle particulière

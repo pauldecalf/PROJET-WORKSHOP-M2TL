@@ -4,7 +4,7 @@ import { Building, Room } from '@/models';
 
 /**
  * @swagger
- * /api/buildings/{id}/rooms:
+ * /api/buildings/by-id/{id}/rooms:
  *   get:
  *     summary: Récupérer toutes les salles d'un bâtiment
  *     description: Liste toutes les salles d'un bâtiment spécifique

@@ -4,7 +4,7 @@ import { Device, DeviceData } from '@/models';
 
 /**
  * @swagger
- * /api/devices/{id}/data:
+ * /api/devices/by-id/{id}/data:
  *   get:
  *     summary: Récupérer les données d'un device
  *     description: Retourne l'historique des données (température, humidité, CO2, etc.) d'un device
@@ -142,7 +142,7 @@ export async function GET(
 
 /**
  * @swagger
- * /api/devices/{id}/data:
+ * /api/devices/by-id/{id}/data:
  *   post:
  *     summary: Enregistrer des données d'un device
  *     description: Utilisé par les devices pour envoyer leurs mesures (température, humidité, CO2, etc.)

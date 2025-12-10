@@ -4,7 +4,7 @@ import { Building, Room } from '@/models';
 
 /**
  * @swagger
- * /api/buildings/{id}:
+ * /api/buildings/by-id/{id}:
  *   get:
  *     summary: Récupérer un bâtiment spécifique
  *     description: Retourne les détails d'un bâtiment par son ID
@@ -76,7 +76,7 @@ export async function GET(
 
 /**
  * @swagger
- * /api/buildings/{id}:
+ * /api/buildings/by-id/{id}:
  *   patch:
  *     summary: Mettre à jour un bâtiment
  *     description: Met à jour partiellement les informations d'un bâtiment
@@ -174,7 +174,7 @@ export async function PATCH(
 
 /**
  * @swagger
- * /api/buildings/{id}:
+ * /api/buildings/by-id/{id}:
  *   delete:
  *     summary: Supprimer un bâtiment
  *     description: Supprime un bâtiment (seulement s'il n'a pas de salles associées)

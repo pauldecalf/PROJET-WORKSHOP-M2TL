@@ -4,7 +4,7 @@ import { Room, RoomStatus } from '@/models';
 
 /**
  * @swagger
- * /api/public/rooms/{id}:
+ * /api/public/rooms/by-id/{id}:
  *   get:
  *     summary: Informations publiques d'une salle
  *     description: Route publique pour consulter les infos d'une salle (dashboard étudiant)

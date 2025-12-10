@@ -4,7 +4,7 @@ import { Room, Device, DeviceData } from '@/models';
 
 /**
  * @swagger
- * /api/rooms/{id}/data:
+ * /api/rooms/by-id/{id}/data:
  *   get:
  *     summary: Récupérer les données de tous les devices d'une salle
  *     description: Retourne l'historique des données de tous les devices d'une salle

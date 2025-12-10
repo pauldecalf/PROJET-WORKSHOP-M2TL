@@ -4,7 +4,7 @@ import { Device } from '@/models';
 
 /**
  * @swagger
- * /api/devices/{id}:
+ * /api/devices/by-id/{id}:
  *   get:
  *     summary: Récupérer un device spécifique
  *     description: Retourne les détails d'un device par son ID
@@ -78,7 +78,7 @@ export async function GET(
 
 /**
  * @swagger
- * /api/devices/{id}:
+ * /api/devices/by-id/{id}:
  *   patch:
  *     summary: Mettre à jour un device
  *     description: Met à jour partiellement les informations d'un device
@@ -184,7 +184,7 @@ export async function PATCH(
 
 /**
  * @swagger
- * /api/devices/{id}:
+ * /api/devices/by-id/{id}:
  *   delete:
  *     summary: Supprimer un device
  *     description: Supprime définitivement un device et toutes ses données associées

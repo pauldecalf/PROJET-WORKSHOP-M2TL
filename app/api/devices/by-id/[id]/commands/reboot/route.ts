@@ -5,7 +5,7 @@ import { CommandType, CommandStatus } from '@/types/enums';
 
 /**
  * @swagger
- * /api/devices/{id}/commands/reboot:
+ * /api/devices/by-id/{id}/commands/reboot:
  *   post:
  *     summary: Envoyer une commande de redémarrage
  *     description: Crée une commande pour redémarrer un device

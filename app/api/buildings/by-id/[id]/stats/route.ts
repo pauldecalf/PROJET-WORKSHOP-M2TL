@@ -5,7 +5,7 @@ import { RoomAvailability } from '@/types/enums';
 
 /**
  * @swagger
- * /api/buildings/{id}/stats:
+ * /api/buildings/by-id/{id}/stats:
  *   get:
  *     summary: Statistiques d'un bâtiment
  *     description: Retourne des statistiques détaillées sur un bâtiment (salles, devices, disponibilité)

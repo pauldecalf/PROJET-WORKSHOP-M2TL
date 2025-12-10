@@ -5,7 +5,7 @@ import { CommandType, CommandStatus } from '@/types/enums';
 
 /**
  * @swagger
- * /api/devices/{id}/commands/shutdown:
+ * /api/devices/by-id/{id}/commands/shutdown:
  *   post:
  *     summary: Envoyer une commande d'extinction
  *     description: Crée une commande pour éteindre un device
