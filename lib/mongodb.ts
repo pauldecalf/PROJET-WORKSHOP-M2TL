@@ -24,11 +24,18 @@ async function connectDB() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      serverSelectionTimeoutMS: 10000, // 10 secondes max pour sélectionner un serveur
+      socketTimeoutMS: 45000,           // 45 secondes de timeout socket
+      maxPoolSize: 10,                  // Pool de connexions max
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
       console.log('✅ Connecté à MongoDB');
       return mongooseInstance;
+    }).catch((error) => {
+      console.error('❌ Erreur de connexion MongoDB:', error.message);
+      cached.promise = null; // Reset pour retry
+      throw error;
     });
   }
 
