@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document, Model, Types } from 'mongoose';
-import { DeviceStatus } from '@/types/enums';
+import { DeviceStatus, DeviceConfigStatus } from '@/types/enums';
 
 // =============================
 // BOÎTIERS / DEVICES
@@ -9,7 +9,9 @@ export interface IDevice extends Document {
   serialNumber: string;
   name?: string;
   roomId?: Types.ObjectId;
+  badgeId?: Types.ObjectId;
   status: DeviceStatus;
+  configStatus: DeviceConfigStatus;
   firmwareVersion?: string;
   batteryLevel?: number;
   isPoweredOn: boolean;
@@ -33,11 +35,21 @@ const DeviceSchema = new Schema<IDevice>(
       type: Schema.Types.ObjectId,
       ref: 'Room',
     },
+    badgeId: {
+      type: Schema.Types.ObjectId,
+      ref: 'NFCBadge',
+    },
     status: {
       type: String,
       enum: Object.values(DeviceStatus),
       required: true,
       default: DeviceStatus.UNKNOWN,
+    },
+    configStatus: {
+      type: String,
+      enum: Object.values(DeviceConfigStatus),
+      required: true,
+      default: DeviceConfigStatus.PENDING,
     },
     firmwareVersion: {
       type: String,
@@ -65,7 +77,7 @@ const DeviceSchema = new Schema<IDevice>(
 // L'index sur serialNumber est déjà créé automatiquement par "unique: true"
 DeviceSchema.index({ roomId: 1 });
 DeviceSchema.index({ status: 1 });
+DeviceSchema.index({ configStatus: 1 });
 
 export const Device: Model<IDevice> =
   mongoose.models.Device || mongoose.model<IDevice>('Device', DeviceSchema);
-

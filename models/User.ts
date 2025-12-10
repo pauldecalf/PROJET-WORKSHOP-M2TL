@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 import { UserRole } from '@/types/enums';
 
 // =============================
@@ -10,6 +10,7 @@ export interface IUser extends Document {
   passwordHash: string;
   role: UserRole;
   displayName?: string;
+  badgeId?: Types.ObjectId;
   createdAt: Date;
   lastLoginAt?: Date;
 }
@@ -36,6 +37,10 @@ const UserSchema = new Schema<IUser>(
     displayName: {
       type: String,
       maxlength: 100,
+    },
+    badgeId: {
+      type: Schema.Types.ObjectId,
+      ref: 'NFCBadge',
     },
     lastLoginAt: {
       type: Date,

@@ -112,7 +112,7 @@ MongoDB avec 13 collections :
       schemas: {
         Device: {
           type: 'object',
-          required: ['serialNumber', 'status'],
+          required: ['serialNumber', 'status', 'configStatus'],
           properties: {
             _id: {
               type: 'string',
@@ -134,11 +134,22 @@ MongoDB avec 13 collections :
               description: 'ID de la salle',
               example: '507f1f77bcf86cd799439012',
             },
+            badgeId: {
+              type: 'string',
+              description: 'ID du badge NFC associé',
+              example: '507f1f77bcf86cd799439013',
+            },
             status: {
               type: 'string',
               enum: ['ONLINE', 'OFFLINE', 'ERROR', 'UNKNOWN'],
-              description: 'Statut du device',
+              description: 'Statut de connexion du device',
               example: 'ONLINE',
+            },
+            configStatus: {
+              type: 'string',
+              enum: ['PENDING', 'IN_PROGRESS', 'CONFIGURED'],
+              description: 'Statut de configuration du device',
+              example: 'CONFIGURED',
             },
             firmwareVersion: {
               type: 'string',

@@ -14,6 +14,12 @@ export enum DeviceStatus {
   UNKNOWN = 'UNKNOWN'
 }
 
+export enum DeviceConfigStatus {
+  PENDING = 'PENDING',                    // En attente de config
+  IN_PROGRESS = 'IN_PROGRESS',            // Config en cours
+  CONFIGURED = 'CONFIGURED'                // Configuré
+}
+
 export enum RoomAvailability {
   AVAILABLE = 'AVAILABLE',
   OCCUPIED = 'OCCUPIED',
