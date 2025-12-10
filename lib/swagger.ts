@@ -20,8 +20,16 @@ API REST pour la gestion d'un système IoT de salles connectées.
 
 ## Authentification
 
-🔒 **Note** : L'authentification n'est pas encore implémentée.
-En production, ajoutez JWT ou NextAuth.js.
+🔒 **JWT** : L'API utilise des JSON Web Tokens (JWT) pour l'authentification.
+
+**Pour accéder aux routes protégées** :
+1. Appelez \`POST /api/auth/login\` avec vos identifiants
+2. Récupérez l'\`accessToken\` de la réponse
+3. Ajoutez le header : \`Authorization: Bearer <accessToken>\`
+
+**Tokens** :
+- **Access Token** : Expire après 15 minutes (pour les requêtes API)
+- **Refresh Token** : Expire après 7 jours (pour renouveler l'access token)
 
 ## Base de données
 
@@ -52,31 +60,51 @@ MongoDB avec 13 collections :
     ],
     tags: [
       {
+        name: 'Auth',
+        description: '🔐 Authentification JWT (login, refresh, logout)',
+      },
+      {
         name: 'Devices',
-        description: 'Gestion des boîtiers IoT',
+        description: '📟 Gestion des boîtiers IoT (CRUD)',
+      },
+      {
+        name: 'Device Commands',
+        description: '🎛️ Commandes de contrôle des devices (shutdown, reboot, LED)',
       },
       {
         name: 'Sensors',
-        description: 'Gestion des capteurs et mesures',
+        description: '📊 Gestion des capteurs et mesures time-series',
       },
       {
         name: 'Rooms',
-        description: 'Gestion des salles et statuts',
+        description: '🏠 Gestion des salles et statuts de disponibilité',
+      },
+      {
+        name: 'Public',
+        description: '🌐 Routes publiques (dashboard étudiant, pas d\'auth requise)',
+      },
+      {
+        name: 'Admin',
+        description: '🔧 Routes admin (stats, healthcheck détaillé)',
       },
       {
         name: 'Buildings',
-        description: 'Gestion des bâtiments',
-      },
-      {
-        name: 'Commands',
-        description: 'Commandes envoyées aux devices',
+        description: '🏢 Gestion des bâtiments',
       },
       {
         name: 'NFC',
-        description: 'Gestion des badges et événements NFC',
+        description: '🔖 Gestion des badges et événements NFC',
       },
     ],
     components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description: 'Utilisez le token JWT obtenu via /api/auth/login',
+        },
+      },
       schemas: {
         Device: {
           type: 'object',
@@ -268,6 +296,82 @@ MongoDB avec 13 collections :
             rawValue: {
               type: 'object',
               example: { humidity: 45.2, pressure: 1013.25 },
+            },
+          },
+        },
+        DeviceConfig: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              example: '507f1f77bcf86cd799439011',
+            },
+            deviceId: {
+              type: 'string',
+              example: '507f1f77bcf86cd799439012',
+            },
+            measurementIntervalSec: {
+              type: 'integer',
+              description: 'Intervalle de mesure en secondes',
+              example: 60,
+            },
+            wifiSsid: {
+              type: 'string',
+              description: 'SSID WiFi',
+              example: 'IoT-Network',
+            },
+            mqttBrokerUrl: {
+              type: 'string',
+              description: 'URL du broker MQTT',
+              example: 'mqtt://broker.example.com',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+          },
+        },
+        DeviceCommand: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              example: '507f1f77bcf86cd799439011',
+            },
+            deviceId: {
+              type: 'string',
+              example: '507f1f77bcf86cd799439012',
+            },
+            type: {
+              type: 'string',
+              enum: ['SHUTDOWN', 'REBOOT', 'LED_CONTROL', 'UPDATE_CONFIG', 'OTHER'],
+              example: 'REBOOT',
+            },
+            parameters: {
+              type: 'object',
+              description: 'Paramètres de la commande',
+              example: { reason: 'Maintenance programmée' },
+            },
+            status: {
+              type: 'string',
+              enum: ['PENDING', 'SENT', 'ACKNOWLEDGED', 'COMPLETED', 'FAILED'],
+              example: 'PENDING',
+            },
+            sentAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            acknowledgedAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            completedAt: {
+              type: 'string',
+              format: 'date-time',
             },
           },
         },

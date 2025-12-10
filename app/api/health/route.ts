@@ -1,8 +1,34 @@
 import { NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 
 /**
- * Healthcheck endpoint pour Railway et autres plateformes
- * Ne dépend PAS de MongoDB pour être rapide
+ * @swagger
+ * /api/health:
+ *   get:
+ *     summary: Healthcheck basique
+ *     description: Healthcheck rapide pour Railway et monitoring (ne nécessite pas MongoDB)
+ *     tags:
+ *       - Admin
+ *     responses:
+ *       200:
+ *         description: Application en bonne santé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                 uptime:
+ *                   type: number
+ *                   example: 123.45
+ *                 environment:
+ *                   type: string
+ *                   example: production
  */
 export async function GET() {
   return NextResponse.json(
@@ -15,4 +41,5 @@ export async function GET() {
     { status: 200 }
   );
 }
+
 
