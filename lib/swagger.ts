@@ -172,6 +172,36 @@ MongoDB avec 13 collections :
             },
           },
         },
+        Building: {
+          type: 'object',
+          required: ['name'],
+          properties: {
+            _id: {
+              type: 'string',
+              example: '507f1f77bcf86cd799439011',
+            },
+            name: {
+              type: 'string',
+              example: 'Bâtiment A',
+            },
+            address: {
+              type: 'string',
+              example: '123 Rue de l\'Université',
+            },
+            totalFloors: {
+              type: 'integer',
+              example: 5,
+            },
+            mapImageUrl: {
+              type: 'string',
+              example: 'https://example.com/maps/building-a.png',
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+          },
+        },
         Room: {
           type: 'object',
           required: ['buildingId', 'name'],

@@ -7,6 +7,8 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 export interface IBuilding extends Document {
   name: string;
   address?: string;
+  totalFloors?: number;
+  mapImageUrl?: string;
   createdAt: Date;
 }
 
@@ -19,6 +21,16 @@ const BuildingSchema = new Schema<IBuilding>(
     },
     address: {
       type: String,
+      maxlength: 255,
+    },
+    totalFloors: {
+      type: Number,
+      min: 1,
+      max: 100,
+    },
+    mapImageUrl: {
+      type: String,
+      maxlength: 500,
     },
   },
   {
