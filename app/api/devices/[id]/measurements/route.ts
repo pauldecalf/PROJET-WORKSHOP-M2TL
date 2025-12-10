@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import { Device, Sensor, SensorMeasurement } from '@/models';
+import { Device, DeviceData } from '@/models';
 
 /**
  * @swagger

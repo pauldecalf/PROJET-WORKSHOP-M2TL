@@ -68,16 +68,12 @@ MongoDB avec 13 collections :
         description: '📟 Gestion des boîtiers IoT (CRUD)',
       },
       {
-        name: 'IoT Devices',
-        description: '🤖 Routes pour les devices IoT (config et mesures par serialNumber)',
-      },
-      {
         name: 'Device Commands',
         description: '🎛️ Commandes de contrôle des devices (shutdown, reboot, LED)',
       },
       {
-        name: 'Sensors',
-        description: '📊 Gestion des capteurs et mesures time-series',
+        name: 'Device Data',
+        description: '📊 Données des devices (température, humidité, CO2, décibels, luminosité)',
       },
       {
         name: 'Rooms',
@@ -375,6 +371,53 @@ MongoDB avec 13 collections :
               format: 'date-time',
             },
             updatedAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+          },
+        },
+        DeviceData: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              example: '507f1f77bcf86cd799439011',
+            },
+            deviceId: {
+              type: 'string',
+              example: '507f1f77bcf86cd799439012',
+            },
+            temperature: {
+              type: 'number',
+              description: 'Température en °C',
+              example: 23.5,
+            },
+            humidity: {
+              type: 'number',
+              description: 'Humidité en %',
+              example: 45.2,
+            },
+            co2: {
+              type: 'number',
+              description: 'CO2 en ppm',
+              example: 800,
+            },
+            decibel: {
+              type: 'number',
+              description: 'Niveau sonore en dB',
+              example: 55,
+            },
+            luminosity: {
+              type: 'number',
+              description: 'Luminosité en %',
+              example: 75,
+            },
+            measuredAt: {
+              type: 'string',
+              format: 'date-time',
+              example: '2025-12-10T10:30:00Z',
+            },
+            createdAt: {
               type: 'string',
               format: 'date-time',
             },
