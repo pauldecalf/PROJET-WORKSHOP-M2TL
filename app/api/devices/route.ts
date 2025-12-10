@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
  *                 example: true
  *     responses:
  *       201:
- *         description: Device créé avec succès
+ *         description: Device créé avec succès (configStatus défini automatiquement à PENDING)
  *         content:
  *           application/json:
  *             schema:
@@ -195,11 +195,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Créer le device
+    // Note: configStatus sera automatiquement défini à PENDING (valeur par défaut du modèle)
     const device = await Device.create({
       serialNumber: body.serialNumber,
       name: body.name,
       roomId: body.roomId,
       status: body.status || DeviceStatus.UNKNOWN,
+      // configStatus: PENDING (défini automatiquement)
       firmwareVersion: body.firmwareVersion,
       batteryLevel: body.batteryLevel,
       isPoweredOn: body.isPoweredOn !== undefined ? body.isPoweredOn : true,
