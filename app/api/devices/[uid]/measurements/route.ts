@@ -114,7 +114,7 @@ export async function POST(
     const sensorMap = new Map(sensors.map((s) => [s.type, s._id]));
 
     // Enregistrer chaque mesure
-    const savedMeasurements = [];
+    const savedMeasurements: any[] = [];
 
     for (const measurement of body.measurements) {
       const { sensorType, value, unit } = measurement;
@@ -133,7 +133,7 @@ export async function POST(
       const savedMeasurement = await SensorMeasurement.create({
         sensorId,
         numericValue: value,
-        stringValue: unit ? `${value} ${unit}` : null,
+        rawValue: unit ? { value, unit } : undefined,
         measuredAt: new Date(),
       });
 

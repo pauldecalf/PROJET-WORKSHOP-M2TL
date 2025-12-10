@@ -96,11 +96,11 @@ export async function POST(
       );
     }
 
-    // Créer la commande LED_CONTROL
-    const command = await DeviceCommand.create({
+    // Créer la commande SET_LED_STATE
+    const commandDoc = await DeviceCommand.create({
       deviceId: id,
-      type: CommandType.LED_CONTROL,
-      parameters: {
+      command: CommandType.SET_LED_STATE,
+      payload: {
         color: body.color,
         mode: body.mode || 'solid',
         duration: body.duration || 0,
@@ -112,7 +112,7 @@ export async function POST(
     return NextResponse.json(
       {
         success: true,
-        command,
+        command: commandDoc,
         message: `Commande LED envoyée (${body.color})`,
       },
       { status: 201 }

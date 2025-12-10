@@ -69,11 +69,11 @@ export async function POST(
       );
     }
 
-    // Créer la commande SHUTDOWN
-    const command = await DeviceCommand.create({
+    // Créer la commande TURN_OFF (shutdown)
+    const commandDoc = await DeviceCommand.create({
       deviceId: id,
-      type: CommandType.SHUTDOWN,
-      parameters: body.reason ? { reason: body.reason } : {},
+      command: CommandType.TURN_OFF,
+      payload: body.reason ? { reason: body.reason } : {},
       status: CommandStatus.PENDING,
       sentAt: new Date(),
     });
@@ -81,7 +81,7 @@ export async function POST(
     return NextResponse.json(
       {
         success: true,
-        command,
+        command: commandDoc,
         message: 'Commande SHUTDOWN envoyée',
       },
       { status: 201 }

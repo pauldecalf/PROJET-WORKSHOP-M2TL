@@ -59,11 +59,11 @@ export async function POST(
       );
     }
 
-    // Créer la commande REBOOT
-    const command = await DeviceCommand.create({
+    // Créer la commande TURN_ON (reboot = éteindre puis rallumer)
+    const commandDoc = await DeviceCommand.create({
       deviceId: id,
-      type: CommandType.REBOOT,
-      parameters: body.reason ? { reason: body.reason } : {},
+      command: CommandType.TURN_ON,
+      payload: body.reason ? { reason: body.reason } : {},
       status: CommandStatus.PENDING,
       sentAt: new Date(),
     });
@@ -71,7 +71,7 @@ export async function POST(
     return NextResponse.json(
       {
         success: true,
-        command,
+        command: commandDoc,
         message: 'Commande REBOOT envoyée',
       },
       { status: 201 }

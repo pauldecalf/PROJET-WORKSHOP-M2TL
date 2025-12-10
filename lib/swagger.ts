@@ -346,12 +346,12 @@ MongoDB avec 13 collections :
               type: 'string',
               example: '507f1f77bcf86cd799439012',
             },
-            type: {
+            command: {
               type: 'string',
-              enum: ['SHUTDOWN', 'REBOOT', 'LED_CONTROL', 'UPDATE_CONFIG', 'OTHER'],
-              example: 'REBOOT',
+              enum: ['SET_SAMPLING_INTERVAL', 'SET_VISIBILITY', 'TURN_OFF', 'TURN_ON', 'SET_LED_STATE', 'OTA_UPDATE'],
+              example: 'TURN_ON',
             },
-            parameters: {
+            payload: {
               type: 'object',
               description: 'Paramètres de la commande',
               example: { reason: 'Maintenance programmée' },
@@ -369,7 +369,7 @@ MongoDB avec 13 collections :
               type: 'string',
               format: 'date-time',
             },
-            completedAt: {
+            createdAt: {
               type: 'string',
               format: 'date-time',
             },

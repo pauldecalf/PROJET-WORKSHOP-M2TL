@@ -45,8 +45,7 @@ L'API utilise **JSON Web Tokens (JWT)** pour sécuriser les routes.
   "user": {
     "id": "507f1f77bcf86cd799439011",
     "email": "admin@example.com",
-    "firstName": "Admin",
-    "lastName": "User",
+    "displayName": "Admin User",
     "role": "SUPERVISOR"
   }
 }
@@ -132,8 +131,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 interface User {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  displayName?: string;
   role: string;
 }
 
@@ -468,8 +466,7 @@ const bcrypt = require('bcryptjs');
 db.users.insertOne({
   email: 'test@example.com',
   passwordHash: await bcrypt.hash('password123', 10),
-  firstName: 'Test',
-  lastName: 'User',
+  displayName: 'Test User',
   role: 'SUPERVISOR',
   createdAt: new Date(),
 });

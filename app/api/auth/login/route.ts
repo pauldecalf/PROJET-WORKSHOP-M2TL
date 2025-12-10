@@ -53,9 +53,7 @@ import { verifyPassword, generateToken } from '@/lib/auth';
  *                       type: string
  *                     email:
  *                       type: string
- *                     firstName:
- *                       type: string
- *                     lastName:
+ *                     displayName:
  *                       type: string
  *                     role:
  *                       type: string
@@ -127,8 +125,7 @@ export async function POST(request: NextRequest) {
       user: {
         id: user._id,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        displayName: user.displayName,
         role: user.role,
       },
     });
