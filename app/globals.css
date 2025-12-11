@@ -148,3 +148,8 @@ code {
   overflow-x: auto;
   white-space: pre;
 }
+
+/* Fixe le mix de couleur du texte de sidebar quand color-mix n'est pas supporté correctement */
+.text-sidebar-foreground\/70 {
+  color: hsl(var(--sidebar-foreground) / 0.7);
+}
