@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { Device } from '@/models';
+import { logAudit } from '@/lib/audit';
 
 /**
  * @swagger
@@ -164,10 +165,17 @@ export async function PATCH(
       );
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: device,
     });
+    await logAudit({
+      action: 'DEVICE_UPDATED',
+      entityType: 'Device',
+      entityId: device._id.toString(),
+      details: body,
+    });
+    return response;
   } catch (error: any) {
     const resolvedParams = await params;
     console.error(`Erreur PATCH /api/devices/${resolvedParams.id}:`, error);
@@ -237,10 +245,19 @@ export async function DELETE(
       );
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: 'Device supprimé avec succès',
     });
+    if (device) {
+      await logAudit({
+        action: 'DEVICE_DELETED',
+        entityType: 'Device',
+        entityId: device._id.toString(),
+        details: { serialNumber: device.serialNumber },
+      });
+    }
+    return response;
   } catch (error: any) {
     const resolvedParams = await params;
     console.error(`Erreur DELETE /api/devices/${resolvedParams.id}:`, error);

@@ -29,8 +29,6 @@ export function AppLayout({ children }: AppLayoutProps) {
   const navItems = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "Salles", href: "/", icon: Building2 },
-    { label: "Capteurs", href: "/devices", icon: Radio },
-    { label: "Historique", href: "/history", icon: TrendingUp },
     { label: "Administration", href: "/admin", icon: Settings },
   ];
 

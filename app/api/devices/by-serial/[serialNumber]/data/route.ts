@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { Device, DeviceData } from '@/models';
+import { logAudit } from '@/lib/audit';
 
 /**
  * @swagger
@@ -234,13 +235,27 @@ export async function POST(
     device.lastSeenAt = new Date();
     await device.save();
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         success: true,
         data: deviceData,
       },
       { status: 201 }
     );
+    await logAudit({
+      action: 'DEVICE_DATA_CREATED',
+      entityType: 'Device',
+      entityId: device._id.toString(),
+      details: {
+        serialNumber: device.serialNumber,
+        temperature: body.temperature,
+        humidity: body.humidity,
+        co2: body.co2,
+        decibel: body.decibel,
+        luminosity: body.luminosity,
+      },
+    });
+    return response;
   } catch (error: any) {
     const { serialNumber } = await params;
     console.error(`Erreur POST /api/devices/by-serial/${serialNumber}/data:`, error);

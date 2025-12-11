@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { Device, Room } from '@/models';
 import { DeviceStatus } from '@/types/enums';
+import { logAudit } from '@/lib/audit';
 
 /**
  * @swagger
@@ -213,13 +214,20 @@ export async function POST(request: NextRequest) {
       .populate('roomId')
       .lean();
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         success: true,
         data: populatedDevice,
       },
       { status: 201 }
     );
+    await logAudit({
+      action: 'DEVICE_CREATED',
+      entityType: 'Device',
+      entityId: device._id.toString(),
+      details: { serialNumber: device.serialNumber, roomId: body.roomId },
+    });
+    return response;
   } catch (error: any) {
     console.error('Erreur POST /api/devices:', error);
     return NextResponse.json(

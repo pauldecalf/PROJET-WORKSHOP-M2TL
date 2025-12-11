@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { Building } from '@/models';
+import { logAudit } from '@/lib/audit';
 
 /**
  * @swagger
@@ -133,13 +134,20 @@ export async function POST(request: NextRequest) {
       mapImageUrl: body.mapImageUrl,
     });
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         success: true,
         data: building,
       },
       { status: 201 }
     );
+    await logAudit({
+      action: 'BUILDING_CREATED',
+      entityType: 'Building',
+      entityId: building._id.toString(),
+      details: { name: body.name, address: body.address, totalFloors: body.totalFloors },
+    });
+    return response;
   } catch (error: any) {
     console.error('Erreur POST /api/buildings:', error);
     return NextResponse.json(

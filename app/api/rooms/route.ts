@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { Room, Building } from '@/models';
+import { logAudit } from '@/lib/audit';
 
 /**
  * @swagger
@@ -186,13 +187,20 @@ export async function POST(request: NextRequest) {
       .populate('buildingId')
       .lean();
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         success: true,
         data: populatedRoom,
       },
       { status: 201 }
     );
+    await logAudit({
+      action: 'ROOM_CREATED',
+      entityType: 'Room',
+      entityId: room._id.toString(),
+      details: { buildingId: body.buildingId, name: body.name, floor: body.floor },
+    });
+    return response;
   } catch (error: any) {
     console.error('Erreur POST /api/rooms:', error);
     return NextResponse.json(
