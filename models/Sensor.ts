@@ -54,3 +54,7 @@ SensorSchema.index({ type: 1 });
 export const Sensor: Model<ISensor> =
   mongoose.models.Sensor || mongoose.model<ISensor>('Sensor', SensorSchema);
 
+
+
+
+

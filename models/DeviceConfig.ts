@@ -49,3 +49,7 @@ export const DeviceConfig: Model<IDeviceConfig> =
   mongoose.models.DeviceConfig ||
   mongoose.model<IDeviceConfig>('DeviceConfig', DeviceConfigSchema);
 
+
+
+
+

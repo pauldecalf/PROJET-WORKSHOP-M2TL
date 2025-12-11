@@ -65,3 +65,7 @@ export const DeviceData: Model<IDeviceData> =
   mongoose.models.DeviceData ||
   mongoose.model<IDeviceData>('DeviceData', DeviceDataSchema);
 
+
+
+
+

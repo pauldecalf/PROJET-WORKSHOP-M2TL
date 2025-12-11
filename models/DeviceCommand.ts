@@ -65,3 +65,7 @@ export const DeviceCommand: Model<IDeviceCommand> =
   mongoose.models.DeviceCommand ||
   mongoose.model<IDeviceCommand>('DeviceCommand', DeviceCommandSchema);
 
+
+
+
+

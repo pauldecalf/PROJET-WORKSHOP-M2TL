@@ -48,3 +48,7 @@ NFCEventSchema.index({ badgeId: 1, eventAt: -1 });
 export const NFCEvent: Model<INFCEvent> =
   mongoose.models.NFCEvent || mongoose.model<INFCEvent>('NFCEvent', NFCEventSchema);
 
+
+
+
+

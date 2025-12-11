@@ -50,3 +50,7 @@ RoomSchema.index({ buildingId: 1 });
 export const Room: Model<IRoom> =
   mongoose.models.Room || mongoose.model<IRoom>('Room', RoomSchema);
 
+
+
+
+

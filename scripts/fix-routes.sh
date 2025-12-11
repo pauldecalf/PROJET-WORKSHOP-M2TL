@@ -10,3 +10,7 @@ find app/api -name "route.ts" -type f -exec touch {} \;
 echo "✅ Routes touchées, Next.js va les recompiler"
 echo "⏳ Attendez 2-3 secondes puis réessayez votre requête"
 
+
+
+
+
