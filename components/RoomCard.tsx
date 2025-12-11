@@ -75,7 +75,7 @@ export function RoomCard({
 
   return (
     <Card
-      className="flex flex-col gap-4 shadow-sm transition-all hover:shadow-md"
+      className="flex flex-col gap-4 shadow-sm transition-all hover:shadow-md h-fit"
       data-room-id={id}
     >
       <CardHeader className="flex flex-row items-start justify-between space-y-0">
