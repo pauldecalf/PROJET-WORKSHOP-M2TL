@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import { NFCBadge, Device, User } from '@/models';
+import { Device } from '@/models';
 
 /**
  * @swagger
  * /api/admin/nfc/scan:
  *   post:
- *     summary: Scanner un badge NFC
- *     description: Permet à un admin de scanner un badge NFC pour récupérer les informations associées (device et/ou user)
+ *     summary: Scanner un device par numéro de série (admin)
+ *     description: Permet à un admin de récupérer les infos d'un device par son numéro de série
  *     tags:
  *       - Admin
  *       - NFC
@@ -18,15 +18,20 @@ import { NFCBadge, Device, User } from '@/models';
  *           schema:
  *             type: object
  *             required:
- *               - badgeHash
+ *               - adminKey
+ *               - serialNumber
  *             properties:
- *               badgeHash:
+ *               adminKey:
  *                 type: string
- *                 description: Hash du badge NFC scanné
- *                 example: "a1b2c3d4e5f6"
+ *                 description: Clé admin (ou token) pour autoriser le scan
+ *                 example: "super-secret-admin-key"
+ *               serialNumber:
+ *                 type: string
+ *                 description: Numéro de série du device
+ *                 example: "ESP32-001"
  *     responses:
  *       200:
- *         description: Badge scanné avec succès
+ *         description: Device trouvé
  *         content:
  *           application/json:
  *             schema:
@@ -35,30 +40,16 @@ import { NFCBadge, Device, User } from '@/models';
  *                 success:
  *                   type: boolean
  *                   example: true
- *                 badge:
- *                   type: object
- *                   properties:
- *                     _id:
- *                       type: string
- *                     badgeHash:
- *                       type: string
- *                     isActive:
- *                       type: boolean
- *                     createdAt:
- *                       type: string
- *                       format: date-time
  *                 device:
  *                   type: object
  *                   nullable: true
- *                   description: Device associé au badge (si existe)
- *                 user:
- *                   type: object
- *                   nullable: true
- *                   description: Utilisateur associé au badge (si existe)
+ *                   description: Device correspondant au numéro de série
  *       400:
  *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         description: adminKey invalide
  *       404:
- *         description: Badge non trouvé
+ *         description: Device non trouvé
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
@@ -69,62 +60,44 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validation
-    if (!body.badgeHash) {
+    if (!body.adminKey || !body.serialNumber) {
       return NextResponse.json(
         {
           success: false,
-          error: 'badgeHash est requis',
+          error: 'adminKey et serialNumber sont requis',
         },
         { status: 400 }
       );
     }
 
-    // Trouver le badge NFC
-    const badge = await NFCBadge.findOne({ badgeHash: body.badgeHash }).lean();
-
-    if (!badge) {
+    if (process.env.ADMIN_NFC_KEY && body.adminKey !== process.env.ADMIN_NFC_KEY) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Badge NFC non trouvé',
+          error: 'adminKey invalide',
         },
-        { status: 404 }
+        { status: 401 }
       );
     }
 
-    // Chercher un device associé
-    const device = await Device.findOne({ badgeId: badge._id })
+    const device = await Device.findOne({ serialNumber: body.serialNumber })
       .populate('roomId')
       .lean();
 
-    // Chercher un utilisateur associé
-    const user = await User.findOne({ badgeId: badge._id })
-      .select('-passwordHash') // Ne pas retourner le mot de passe
-      .lean();
-
     return NextResponse.json({
-      success: true,
-      badge: {
-        _id: badge._id,
-        badgeHash: badge.badgeHash,
-        createdAt: badge.createdAt,
-      },
-      device: device ? {
-        _id: device._id,
-        serialNumber: device.serialNumber,
-        name: device.name,
-        roomId: device.roomId,
-        status: device.status,
-        configStatus: device.configStatus,
-        batteryLevel: device.batteryLevel,
-        lastSeenAt: device.lastSeenAt,
-      } : null,
-      user: user ? {
-        _id: user._id,
-        email: user.email,
-        displayName: user.displayName,
-        role: user.role,
-      } : null,
+      success: !!device,
+      device: device
+        ? {
+            _id: device._id,
+            serialNumber: device.serialNumber,
+            name: device.name,
+            roomId: device.roomId,
+            status: device.status,
+            configStatus: device.configStatus,
+            batteryLevel: device.batteryLevel,
+            lastSeenAt: device.lastSeenAt,
+          }
+        : null,
     });
   } catch (error: any) {
     console.error('Erreur POST /api/admin/nfc/scan:', error);
