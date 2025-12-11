@@ -118,6 +118,7 @@ function RoomCardWithData({
       name={room.name ?? "Salle"}
       floor={room.floor ?? 0}
       status={mapAvailability(availability?.availability)}
+      actualStatus={availability?.availability}
       conditions={{
         temperature: latest?.temperature ?? 0,
         co2: latest?.co2 ?? 0,

@@ -24,6 +24,7 @@ interface RoomCardProps {
   name: string;
   floor: number;
   status: "available" | "occupied" | "alert";
+  actualStatus?: string;
   conditions: RoomConditions;
   lastUpdated?: string;
   timeseries?: React.ReactNode;
@@ -34,6 +35,7 @@ export function RoomCard({
   name,
   floor,
   status,
+  actualStatus,
   conditions,
   lastUpdated,
   timeseries,
@@ -79,7 +81,10 @@ export function RoomCard({
       <CardHeader className="flex flex-row items-start justify-between space-y-0">
         <div>
           <CardTitle className="text-lg font-semibold text-foreground">{name}</CardTitle>
-          <CardDescription>Étage {floor}</CardDescription>
+          <CardDescription>
+            Étage {floor}
+            {actualStatus ? ` • ${actualStatus}` : ""}
+          </CardDescription>
         </div>
         <Badge
           className={cn(

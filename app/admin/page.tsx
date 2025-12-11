@@ -74,6 +74,8 @@ export default function AdminPage() {
   const { data: buildingsRes } = useSWR("/api/buildings", fetcher);
   const buildings: { _id: string; name: string }[] = buildingsRes?.data ?? [];
   const { data: roomsRes } = useSWR("/api/rooms", fetcher);
+  const rooms: { _id: string; name: string; buildingId?: { _id: string; name: string }; floor?: number }[] =
+    roomsRes?.data ?? [];
 
   const logsSeries = logs
     .map((l) => ({
@@ -111,6 +113,25 @@ export default function AdminPage() {
     serialNumber: "",
     name: "",
     roomId: "",
+    message: "",
+    error: "",
+    pending: false,
+  });
+
+  const [editBuildingForm, setEditBuildingForm] = useState({
+    id: "",
+    name: "",
+    address: "",
+    totalFloors: "",
+    message: "",
+    error: "",
+    pending: false,
+  });
+
+  const [editRoomForm, setEditRoomForm] = useState({
+    id: "",
+    name: "",
+    floor: "",
     message: "",
     error: "",
     pending: false,
@@ -200,6 +221,66 @@ export default function AdminPage() {
       mutate("/api/devices");
     } catch (err: any) {
       setDeviceForm((f) => ({ ...f, pending: false, error: err.message }));
+    }
+  };
+
+  const submitEditBuilding = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditBuildingForm((f) => ({ ...f, pending: true, error: "", message: "" }));
+    try {
+      if (!editBuildingForm.id) throw new Error("Choisir un bâtiment");
+      const res = await fetch(`/api/buildings/by-id/${editBuildingForm.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editBuildingForm.name || undefined,
+          address: editBuildingForm.address || undefined,
+          totalFloors:
+            editBuildingForm.totalFloors === ""
+              ? undefined
+              : Number(editBuildingForm.totalFloors),
+        }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json?.error || "Erreur lors de la mise à jour du bâtiment");
+      }
+      setEditBuildingForm((f) => ({
+        ...f,
+        pending: false,
+        message: "Bâtiment mis à jour",
+      }));
+      mutate("/api/buildings");
+    } catch (err: any) {
+      setEditBuildingForm((f) => ({ ...f, pending: false, error: err.message }));
+    }
+  };
+
+  const submitEditRoom = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditRoomForm((f) => ({ ...f, pending: true, error: "", message: "" }));
+    try {
+      if (!editRoomForm.id) throw new Error("Choisir une salle");
+      const res = await fetch(`/api/rooms/by-id/${editRoomForm.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editRoomForm.name || undefined,
+          floor: editRoomForm.floor === "" ? undefined : Number(editRoomForm.floor),
+        }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json?.error || "Erreur lors de la mise à jour de la salle");
+      }
+      setEditRoomForm((f) => ({
+        ...f,
+        pending: false,
+        message: "Salle mise à jour",
+      }));
+      mutate("/api/rooms");
+    } catch (err: any) {
+      setEditRoomForm((f) => ({ ...f, pending: false, error: err.message }));
     }
   };
 
@@ -518,9 +599,9 @@ export default function AdminPage() {
                   <SelectValue placeholder="Choisir une salle" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(roomsRes?.data ?? []).map((r: any) => (
+                  {rooms.map((r) => (
                     <SelectItem key={r._id} value={r._id}>
-                      {r.name}
+                      {r.name} {r.buildingId?.name ? `- ${r.buildingId.name}` : ""} {r.floor !== undefined ? `(Étage ${r.floor})` : ""}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -534,6 +615,119 @@ export default function AdminPage() {
             )}
             <Button type="submit" className="w-full" disabled={deviceForm.pending}>
               {deviceForm.pending ? "Création..." : "Créer le capteur"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Modifier un bâtiment / une salle</CardTitle>
+          <CardDescription>Mises à jour rapides des entités existantes</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-6 md:grid-cols-2">
+          <form className="space-y-3" onSubmit={submitEditBuilding}>
+            <p className="text-sm font-medium text-foreground">Bâtiment</p>
+            <div className="space-y-2">
+              <Label>Choisir un bâtiment</Label>
+              <Select
+                value={editBuildingForm.id}
+                onValueChange={(v) => setEditBuildingForm((f) => ({ ...f, id: v }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Bâtiment" />
+                </SelectTrigger>
+                <SelectContent>
+                  {buildings.map((b) => (
+                    <SelectItem key={b._id} value={b._id}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Nom</Label>
+              <Input
+                placeholder="Nom"
+                value={editBuildingForm.name}
+                onChange={(e) => setEditBuildingForm((f) => ({ ...f, name: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Adresse</Label>
+              <Input
+                placeholder="Adresse"
+                value={editBuildingForm.address}
+                onChange={(e) => setEditBuildingForm((f) => ({ ...f, address: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Étages totaux</Label>
+              <Input
+                type="number"
+                min={1}
+                max={100}
+                value={editBuildingForm.totalFloors}
+                onChange={(e) => setEditBuildingForm((f) => ({ ...f, totalFloors: e.target.value }))}
+              />
+            </div>
+            {editBuildingForm.error && <p className="text-sm text-red-600">{editBuildingForm.error}</p>}
+            {editBuildingForm.message && <p className="text-sm text-green-600">{editBuildingForm.message}</p>}
+            <Button type="submit" className="w-full" disabled={editBuildingForm.pending}>
+              {editBuildingForm.pending ? "Mise à jour..." : "Mettre à jour le bâtiment"}
+            </Button>
+          </form>
+
+          <form className="space-y-3" onSubmit={submitEditRoom}>
+            <p className="text-sm font-medium text-foreground">Salle</p>
+            <div className="space-y-2">
+              <Label>Choisir une salle</Label>
+              <Select
+                value={editRoomForm.id}
+                onValueChange={(v) => {
+                  const room = rooms.find((r) => r._id === v);
+                  setEditRoomForm((f) => ({
+                    ...f,
+                    id: v,
+                    name: room?.name ?? f.name,
+                    floor: room?.floor?.toString() ?? f.floor,
+                  }));
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Salle" />
+                </SelectTrigger>
+                <SelectContent>
+                  {rooms.map((r) => (
+                    <SelectItem key={r._id} value={r._id}>
+                      {r.name} {r.buildingId?.name ? `- ${r.buildingId.name}` : ""}{" "}
+                      {r.floor !== undefined ? `(Étage ${r.floor})` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Nom</Label>
+              <Input
+                placeholder="Nom"
+                value={editRoomForm.name}
+                onChange={(e) => setEditRoomForm((f) => ({ ...f, name: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Étage</Label>
+              <Input
+                type="number"
+                value={editRoomForm.floor}
+                onChange={(e) => setEditRoomForm((f) => ({ ...f, floor: e.target.value }))}
+              />
+            </div>
+            {editRoomForm.error && <p className="text-sm text-red-600">{editRoomForm.error}</p>}
+            {editRoomForm.message && <p className="text-sm text-green-600">{editRoomForm.message}</p>}
+            <Button type="submit" className="w-full" disabled={editRoomForm.pending}>
+              {editRoomForm.pending ? "Mise à jour..." : "Mettre à jour la salle"}
             </Button>
           </form>
         </CardContent>
