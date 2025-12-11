@@ -75,8 +75,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Mettre le statut du device en IN_PROGRESS (processus de scan/config)
-    device.status = 'IN_PROGRESS' as any;
+    // Mettre le statut de config du device en SCAN_BY_CARD (processus de scan/config par badge)
+    device.configStatus = 'SCAN_BY_CARD' as any;
     await device.save();
 
     return NextResponse.json({
