@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import { Device, RoomStatus } from '@/models';
+import { Device } from '@/models';
+import { DeviceStatus, DeviceConfigStatus } from '@/types/enums';
 
 /**
  * @swagger
@@ -76,7 +77,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Mettre le statut de config du device en SCAN_BY_CARD (processus de scan/config par badge)
-    device.configStatus = 'SCAN_BY_CARD' as any;
+    device.configStatus = DeviceConfigStatus.SCAN_BY_CARD;
+    // S'assurer que status a une valeur valide
+    if (!device.status) {
+      device.status = DeviceStatus.UNKNOWN;
+    }
     await device.save();
 
     return NextResponse.json({

@@ -17,7 +17,8 @@ export enum DeviceStatus {
 export enum DeviceConfigStatus {
   PENDING = 'PENDING',                    // En attente de config
   IN_PROGRESS = 'IN_PROGRESS',            // Config en cours
-  CONFIGURED = 'CONFIGURED'                // Configuré
+  CONFIGURED = 'CONFIGURED',              // Configuré
+  SCAN_BY_CARD = 'SCAN_BY_CARD'           // Scan badge en cours
 }
 
 export enum RoomAvailability {
