@@ -82,7 +82,7 @@ function useRoomTimeseries(roomId: string | undefined) {
   );
 
   // Aplatit toutes les mesures des devices, triées par date décroissante
-  const series: Array<{ time: string; temperature?: number; co2?: number; humidity?: number; luminosity?: number }> = [];
+  const series: Array<{ time: string; temperature?: number; co2?: number; humidity?: number; luminosity?: number; decibel?: number }> = [];
   const devices = data?.devices ?? [];
   devices.forEach((d: any) => {
     (d.data ?? []).forEach((m: any) => {
@@ -92,6 +92,7 @@ function useRoomTimeseries(roomId: string | undefined) {
         co2: m.co2,
         humidity: m.humidity,
         luminosity: m.luminosity ?? (m as any).brightness,
+        decibel: m.decibel ?? (m as any).noiseLevel,
       });
     });
   });
@@ -165,6 +166,12 @@ function RoomCardWithData({
                   hide
                   domain={['dataMin-150', 'dataMax+350']}
                 />
+                <YAxis
+                  yAxisId="db"
+                  orientation="right"
+                  hide
+                  domain={['dataMin-10', 'dataMax+30']}
+                />
                 <Tooltip
                   labelFormatter={(t) => new Date(t as string).toLocaleString()}
                   formatter={(value: any, name: any) => {
@@ -172,6 +179,7 @@ function RoomCardWithData({
                     if (name === "co2") return [value, "CO₂ (ppm)"];
                     if (name === "humidity") return [value, "Humidité (%)"];
                     if (name === "luminosity") return [value, "Luminosité (lx)"];
+                    if (name === "decibel") return [value, "Bruit (dB)"];
                     return [value, name];
                   }}
                 />
@@ -198,6 +206,14 @@ function RoomCardWithData({
                   dot={false}
                   strokeWidth={2}
                   yAxisId="lux"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="decibel"
+                  stroke="#a855f7"
+                  dot={false}
+                  strokeWidth={2}
+                  yAxisId="db"
                 />
                 <Line
                   type="monotone"
