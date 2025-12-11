@@ -63,33 +63,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const device = await Device.findOne({ serialNumber: body.serialNumber })
-      .populate('roomId')
-      .lean();
+    const device = await Device.findOne({ serialNumber: body.serialNumber }).populate('roomId');
 
-    // Mettre à jour le currentStatus de la salle associée si elle existe
-    if (device?.roomId?._id) {
-      await RoomStatus.updateOne(
-        { roomId: device.roomId._id },
-        { $set: { currentStatus: 'INCHANGE' } }
+    if (!device) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Device non trouvé',
+        },
+        { status: 404 }
       );
     }
 
+    // Mettre le statut du device en IN_PROGRESS (processus de scan/config)
+    device.status = 'IN_PROGRESS' as any;
+    await device.save();
+
     return NextResponse.json({
-      success: !!device,
-      device: device
-        ? {
-            _id: device._id,
-            serialNumber: device.serialNumber,
-            name: device.name,
-            roomId: device.roomId,
-            status: device.status,
-            configStatus: device.configStatus,
-            batteryLevel: device.batteryLevel,
-            lastSeenAt: device.lastSeenAt,
-            currentStatus: 'INCHANGE',
-          }
-        : null,
+      success: true,
+      device: {
+        _id: device._id,
+        serialNumber: device.serialNumber,
+        name: device.name,
+        roomId: device.roomId,
+        status: device.status,
+        configStatus: device.configStatus,
+        batteryLevel: device.batteryLevel,
+        lastSeenAt: device.lastSeenAt,
+      },
     });
   } catch (error: any) {
     console.error('Erreur POST /api/admin/nfc/scan:', error);
