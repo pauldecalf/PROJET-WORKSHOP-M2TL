@@ -58,6 +58,7 @@
     "recharts": "^3.5.1",
     "sonner": "^2.0.7",
     "swagger-jsdoc": "^6.2.8",
+    "swagger-ui": "^5.30.3",
     "swagger-ui-react": "^5.30.3",
     "swr": "^2.3.7",
     "tailwind-merge": "^2.6.0",
