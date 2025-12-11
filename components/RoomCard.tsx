@@ -26,6 +26,8 @@ interface RoomCardProps {
   status: "available" | "occupied" | "alert";
   conditions: RoomConditions;
   lastUpdated?: string;
+  actualStatus?: string;
+  timeseries?: React.ReactNode;
 }
 
 export function RoomCard({
