@@ -45,7 +45,7 @@ const DeviceDataSchema = new Schema<IDeviceData>(
     decibel: {
       type: Number,
       min: 0,
-      max: 200,
+    max: 10000,
     },
     luminosity: {
       type: Number,
