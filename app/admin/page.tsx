@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { useSWRConfig } from "swr";
+import { AlertTriangle } from "lucide-react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -71,6 +72,7 @@ export default function AdminPage() {
 
   const { data: devicesRes } = useSWR("/api/devices", fetcher);
   const devices: Device[] = devicesRes?.data ?? [];
+  const scannedDevices = devices.filter((d) => d.configStatus === "SCAN_BY_CARD");
   const { data: buildingsRes } = useSWR("/api/buildings", fetcher);
   const buildings: { _id: string; name: string }[] = buildingsRes?.data ?? [];
   const { data: roomsRes } = useSWR("/api/rooms", fetcher);
@@ -286,6 +288,118 @@ export default function AdminPage() {
     }
   };
 
+  const QuickDeviceAction = ({ device }: { device: Device }) => {
+    const [open, setOpen] = useState(false);
+    const [isPending, startTransition] = useTransition();
+    const [form, setForm] = useState({
+      name: device.name ?? "",
+      status: device.status ?? "UNKNOWN",
+      configStatus: device.configStatus ?? "PENDING",
+      batteryLevel: device.batteryLevel ?? "",
+      isPoweredOn: device.isPoweredOn ?? true,
+    });
+
+    const handleSubmit = async () => {
+      startTransition(async () => {
+        await fetch(`/api/devices/by-id/${device._id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: form.name,
+            status: form.status,
+            configStatus: form.configStatus,
+            batteryLevel: form.batteryLevel === "" ? undefined : Number(form.batteryLevel),
+            isPoweredOn: form.isPoweredOn,
+          }),
+        });
+        setOpen(false);
+        mutate("/api/devices");
+      });
+    };
+
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button size="sm" variant="outline">Configurer</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Configurer le device</DialogTitle>
+            <DialogDescription>
+              Mettre à jour les informations du capteur scanné.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nom</Label>
+              <Input
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Statut</Label>
+              <Select
+                value={form.status}
+                onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ONLINE">ONLINE</SelectItem>
+                  <SelectItem value="OFFLINE">OFFLINE</SelectItem>
+                  <SelectItem value="ERROR">ERROR</SelectItem>
+                  <SelectItem value="UNKNOWN">UNKNOWN</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Statut config</Label>
+              <Select
+                value={form.configStatus}
+                onValueChange={(v) => setForm((f) => ({ ...f, configStatus: v }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Statut config" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PENDING">PENDING</SelectItem>
+                  <SelectItem value="IN_PROGRESS">IN_PROGRESS</SelectItem>
+                  <SelectItem value="CONFIGURED">CONFIGURED</SelectItem>
+                  <SelectItem value="SCAN_BY_CARD">SCAN_BY_CARD</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Niveau batterie (%)</Label>
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={form.batteryLevel}
+                onChange={(e) => setForm((f) => ({ ...f, batteryLevel: e.target.value }))}
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <Switch
+                id={`powered-${device._id}`}
+                checked={form.isPoweredOn}
+                onCheckedChange={(v) => setForm((f) => ({ ...f, isPoweredOn: v }))}
+              />
+              <Label htmlFor={`powered-${device._id}`}>Alimenté</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleSubmit} disabled={isPending}>
+              {isPending ? "Enregistrement..." : "Enregistrer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   const DeviceRow = ({ device }: { device: Device }) => {
     const isOnline = device.status === "ONLINE";
     const [open, setOpen] = useState(false);
@@ -386,6 +500,7 @@ export default function AdminPage() {
                       <SelectItem value="PENDING">PENDING</SelectItem>
                       <SelectItem value="IN_PROGRESS">IN_PROGRESS</SelectItem>
                       <SelectItem value="CONFIGURED">CONFIGURED</SelectItem>
+                  <SelectItem value="SCAN_BY_CARD">SCAN_BY_CARD</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -436,6 +551,46 @@ export default function AdminPage() {
           Voir l'historique complet
         </Link>
       </div>
+
+      {scannedDevices.length > 0 && (
+        <Card className="border-status-alert/40 bg-status-alert/10">
+          <CardHeader className="flex flex-row items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-status-alert mt-1" />
+            <div>
+              <CardTitle className="text-status-alert">Capteurs scannés à configurer</CardTitle>
+              <CardDescription>
+                Les devices en statut <span className="font-semibold text-status-alert">SCAN_BY_CARD</span> viennent d'être scannés. Ouvrez la configuration pour finaliser le provisioning.
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {scannedDevices.map((d) => (
+              <div
+                key={d._id}
+                className="rounded-md border border-status-alert/30 bg-white/60 p-3 shadow-sm dark:bg-background"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{d.name || "Capteur sans nom"}</p>
+                    <p className="text-xs text-muted-foreground font-mono">{d.serialNumber}</p>
+                  </div>
+                  <Badge variant="outline" className="border-status-alert/40 text-status-alert">
+                    SCAN_BY_CARD
+                  </Badge>
+                </div>
+                <div className="mt-2 text-sm text-muted-foreground space-y-1">
+                  <p>Salle : {d.roomId?.name ?? "Non affecté"}</p>
+                  <p>Statut : {d.status ?? "Inconnu"}</p>
+                  <p>Vu le : {d.lastSeenAt ? new Date(d.lastSeenAt).toLocaleString() : "—"}</p>
+                </div>
+                <div className="mt-3">
+                  <QuickDeviceAction device={d} />
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
