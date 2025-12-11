@@ -106,6 +106,12 @@ export async function GET(
       .limit(limit)
       .lean();
 
+    // Injecter le serialNumber dans les entrées si absent (compat)
+    const dataWithSerial = data.map((d) => ({
+      ...d,
+      serialNumber: d.serialNumber || device.serialNumber,
+    }));
+
     // Calculer des statistiques
     const stats = {
       temperature: calculateStats(data.map(d => d.temperature).filter(v => v != null)),
@@ -122,8 +128,8 @@ export async function GET(
         serialNumber: device.serialNumber,
         name: device.name,
       },
-      count: data.length,
-      data,
+      count: dataWithSerial.length,
+      data: dataWithSerial,
       stats,
     });
   } catch (error: any) {
@@ -239,6 +245,7 @@ export async function POST(
     // Créer l'enregistrement
     const deviceData = await DeviceData.create({
       deviceId: device._id,
+      serialNumber: device.serialNumber,
       temperature: body.temperature,
       humidity: body.humidity,
       co2: body.co2,

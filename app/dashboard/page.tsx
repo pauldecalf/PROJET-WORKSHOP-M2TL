@@ -21,13 +21,36 @@ async function fetchRoomsCount() {
   }
 }
 
+async function fetchDevicesCounts() {
+  try {
+    const base =
+      process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
+      process.env.VERCEL_URL?.trim()?.startsWith("http")
+        ? process.env.VERCEL_URL
+        : "";
+
+    const res = await fetch(`${base}/api/devices`, {
+      method: "GET",
+      cache: "no-store",
+    });
+    if (!res.ok) return { total: 0, online: 0 };
+    const json = (await res.json()) as { data?: Array<{ status?: string }> };
+    const devices = json?.data ?? [];
+    const online = devices.filter((d) => d.status === "ONLINE").length;
+    return { total: devices.length, online };
+  } catch {
+    return { total: 0, online: 0 };
+  }
+}
+
 export default async function Dashboard() {
   const roomsCount = await fetchRoomsCount();
+  const devicesCounts = await fetchDevicesCounts();
 
   const kpis = [
     { label: "Salles totales", value: roomsCount.toString() },
-    { label: "Capteurs en ligne", value: "—" },
-    { label: "Salles confortables", value: "—" },
+    { label: "Capteurs en ligne", value: devicesCounts.online.toString() },
+    { label: "Capteurs totaux", value: devicesCounts.total.toString() },
     { label: "Alertes actives", value: "—" },
   ];
 

@@ -6,6 +6,7 @@ import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 
 export interface IDeviceData extends Document {
   deviceId: Types.ObjectId;
+  serialNumber?: string;
   temperature?: number;      // en °C
   humidity?: number;         // en %
   co2?: number;             // en ppm
@@ -21,6 +22,10 @@ const DeviceDataSchema = new Schema<IDeviceData>(
       type: Schema.Types.ObjectId,
       ref: 'Device',
       required: true,
+    },
+    serialNumber: {
+      type: String,
+      maxlength: 100,
     },
     temperature: {
       type: Number,
@@ -59,6 +64,7 @@ const DeviceDataSchema = new Schema<IDeviceData>(
 
 // Index composé pour les requêtes temporelles
 DeviceDataSchema.index({ deviceId: 1, measuredAt: -1 });
+DeviceDataSchema.index({ serialNumber: 1, measuredAt: -1 });
 DeviceDataSchema.index({ measuredAt: -1 });
 
 export const DeviceData: Model<IDeviceData> =

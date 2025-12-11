@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import useSWR from "swr";
 import { Grip, List } from "lucide-react";
 
 import { RoomCard } from "@/components/RoomCard";
@@ -12,126 +13,157 @@ import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 
-// Mock data - replace with API calls later
-const mockRooms = [
-  {
-    id: "101",
-    name: "Salle 101",
-    floor: 0,
-    building: "Bâtiment A",
-    status: "available" as const,
-    conditions: { temperature: 22.5, co2: 850, noise: 55, brightness: 75 },
-    lastUpdated: "À l'instant",
-  },
-  {
-    id: "102",
-    name: "Salle 102",
-    floor: 0,
-    building: "Bâtiment A",
-    status: "available" as const,
-    conditions: { temperature: 23.1, co2: 950, noise: 48, brightness: 82 },
-    lastUpdated: "Il y a 30s",
-  },
-  {
-    id: "103",
-    name: "Salle 103",
-    floor: 0,
-    building: "Bâtiment A",
-    status: "occupied" as const,
-    conditions: { temperature: 21.8, co2: 1200, noise: 65, brightness: 70 },
-    lastUpdated: "Il y a 1m",
-  },
-  {
-    id: "201",
-    name: "Salle 201",
-    floor: 1,
-    building: "Bâtiment A",
-    status: "available" as const,
-    conditions: { temperature: 24.2, co2: 1100, noise: 52, brightness: 88 },
-    lastUpdated: "Il y a 15s",
-  },
-  {
-    id: "202",
-    name: "Salle 202",
-    floor: 1,
-    building: "Bâtiment A",
-    status: "alert" as const,
-    conditions: { temperature: 26.5, co2: 1450, noise: 72, brightness: 45 },
-    lastUpdated: "À l'instant",
-  },
-  {
-    id: "203",
-    name: "Salle 203",
-    floor: 1,
-    building: "Bâtiment A",
-    status: "available" as const,
-    conditions: { temperature: 22.0, co2: 780, noise: 40, brightness: 80 },
-    lastUpdated: "Il y a 45s",
-  },
-  {
-    id: "301",
-    name: "Salle 301",
-    floor: 2,
-    building: "Bâtiment A",
-    status: "occupied" as const,
-    conditions: { temperature: 23.9, co2: 1050, noise: 58, brightness: 65 },
-    lastUpdated: "Il y a 2m",
-  },
-  {
-    id: "302",
-    name: "Salle 302",
-    floor: 2,
-    building: "Bâtiment A",
-    status: "available" as const,
-    conditions: { temperature: 21.5, co2: 920, noise: 50, brightness: 85 },
-    lastUpdated: "Il y a 20s",
-  },
-];
-
 type ViewMode = "list" | "grid";
 type SortBy = "name" | "comfort" | "floor";
+
+const fetcher = (url: string) => fetch(url, { cache: "no-store" }).then((r) => r.json());
+
+// Map backend availability to UI status
+const mapAvailability = (availability: string | undefined) => {
+  if (availability === "AVAILABLE") return "available" as const;
+  if (availability === "OCCUPIED") return "occupied" as const;
+  return "alert" as const; // UNKNOWN ou autres
+};
+
+type RoomData = {
+  temperature?: number;
+  co2?: number;
+  noiseLevel?: number;
+  luminosity?: number;
+  createdAt?: string;
+};
+
+// Récupère les données de la salle (agrégation côté API) et prend la plus récente
+function useRoomData(roomId: string | undefined) {
+  const { data, error, isLoading } = useSWR(
+    roomId ? `/api/rooms/by-id/${roomId}/data` : null,
+    fetcher,
+  );
+
+  const latest: RoomData | undefined = data?.data?.[0];
+  return {
+    isLoading,
+    error,
+    latest: latest
+      ? {
+          temperature: latest.temperature,
+          co2: latest.co2,
+          noiseLevel: latest.noiseLevel ?? (latest as any).noise,
+          luminosity: latest.luminosity ?? (latest as any).brightness,
+          createdAt: latest.createdAt,
+        }
+      : undefined,
+  };
+}
+
+function RoomCardWithData({
+  room,
+  availability,
+}: {
+  room: any;
+  availability?: any;
+}) {
+  const { latest } = useRoomData(room._id);
+
+  return (
+    <RoomCard
+      key={room._id}
+      id={room._id}
+      name={room.name ?? "Salle"}
+      floor={room.floor ?? 0}
+      status={mapAvailability(availability?.availability)}
+      conditions={{
+        temperature: latest?.temperature ?? 0,
+        co2: latest?.co2 ?? 0,
+        noise: latest?.noiseLevel,
+        brightness: latest?.luminosity,
+      }}
+      lastUpdated={
+        availability?.lastUpdateAt
+          ? new Date(availability.lastUpdateAt).toLocaleTimeString()
+          : latest?.createdAt
+            ? new Date(latest.createdAt).toLocaleTimeString()
+            : undefined
+      }
+    />
+  );
+}
 
 export default function Salles() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [selectedFloor, setSelectedFloor] = useState<string>("all");
   const [showOnlyAvailable, setShowOnlyAvailable] = useState(false);
   const [sortBy, setSortBy] = useState<SortBy>("name");
+  const [selectedBuilding, setSelectedBuilding] = useState<string>("all");
 
-  const buildings = ["Bâtiment A", "Bâtiment B"];
-  const [selectedBuilding, setSelectedBuilding] = useState(buildings[0]);
-  const floors = [0, 1, 2];
+  const { data: buildingsRes } = useSWR("/api/buildings", fetcher);
+  const buildings = buildingsRes?.data ?? [];
 
-  // Filter and sort rooms
+  // Requête rooms.status, filtrée par buildingId si sélectionné
+  // Rooms par bâtiment : /api/buildings/by-id/{id}/rooms, sinon /api/rooms (toutes)
+  const roomsUrl =
+    selectedBuilding !== "all"
+      ? `/api/buildings/by-id/${selectedBuilding}/rooms`
+      : "/api/rooms";
+  const { data: roomsRes } = useSWR(roomsUrl, fetcher);
+  const rooms = roomsRes?.data ?? [];
+
+  // Statuts, filtrés par bâtiment si présent
+  const statusUrl =
+    selectedBuilding !== "all"
+      ? `/api/rooms/status?buildingId=${selectedBuilding}`
+      : "/api/rooms/status";
+  const { data: statusRes } = useSWR(statusUrl, fetcher);
+  const statuses = statusRes?.data ?? [];
+
+  const availabilityByRoomId = useMemo(() => {
+    const map = new Map<string, any>();
+    statuses.forEach((s: any) => {
+      if (s.room?._id) map.set(s.room._id, s);
+    });
+    return map;
+  }, [statuses]);
+
+  const floors = useMemo(() => {
+    const set = new Set<number>();
+    rooms.forEach((r: any) => {
+      if (r.floor != null) set.add(r.floor);
+    });
+    return Array.from(set).sort((a, b) => a - b);
+  }, [rooms]);
+
   const filteredRooms = useMemo(() => {
     const floorFilter = selectedFloor === "all" ? null : parseInt(selectedFloor, 10);
-    let rooms = mockRooms.filter((room) => room.building === selectedBuilding);
+    let list = rooms as any[];
 
     if (floorFilter !== null) {
-      rooms = rooms.filter((room) => room.floor === floorFilter);
+      list = list.filter((r) => r.floor === floorFilter);
     }
 
     if (showOnlyAvailable) {
-      rooms = rooms.filter((room) => room.status === "available");
+      list = list.filter((r) => {
+        const status = availabilityByRoomId.get(r._id);
+        return status?.availability === "AVAILABLE";
+      });
     }
 
-    // Sort
-    rooms.sort((a, b) => {
+    list = [...list].sort((a, b) => {
       if (sortBy === "name") {
-        return a.name.localeCompare(b.name);
+        return (a.name || "").localeCompare(b.name || "");
       } else if (sortBy === "floor") {
-        return a.floor - b.floor;
+        return (a.floor || 0) - (b.floor || 0);
       } else if (sortBy === "comfort") {
-        const scoreA =
-          (a.status === "available" ? 3 : 0) + (a.conditions.co2 < 1000 ? 1 : 0);
-        const scoreB =
-          (b.status === "available" ? 3 : 0) + (b.conditions.co2 < 1000 ? 1 : 0);
-        return scoreB - scoreA;
+        // Pas de confort réel → fallback sur availability
+        const statusA = availabilityByRoomId.get(a._id);
+        const statusB = availabilityByRoomId.get(b._id);
+        const score = (s: any) => (s?.availability === "AVAILABLE" ? 1 : 0);
+        return score(statusB) - score(statusA);
       }
       return 0;
     });
 
-    return rooms;
-  }, [selectedBuilding, selectedFloor, showOnlyAvailable, sortBy]);
+    return list;
+  }, [rooms, selectedFloor, showOnlyAvailable, sortBy, availabilityByRoomId]);
 
   return (
     <div className="space-y-6">
@@ -142,7 +174,7 @@ export default function Salles() {
         </p>
       </div>
 
-      {/* Filters and controls */}
+      {/* Filtres */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle>Filtres</CardTitle>
@@ -159,9 +191,10 @@ export default function Salles() {
                   <SelectValue placeholder="Choisir un bâtiment" />
                 </SelectTrigger>
                 <SelectContent>
-                  {buildings.map((building) => (
-                    <SelectItem key={building} value={building}>
-                      {building}
+                  <SelectItem value="all">Tous les bâtiments</SelectItem>
+                  {buildings.map((b: any) => (
+                    <SelectItem key={b._id} value={b._id}>
+                      {b.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -218,7 +251,7 @@ export default function Salles() {
         </CardContent>
       </Card>
 
-      {/* View toggle */}
+      {/* Vue toggle */}
       <div className="flex flex-wrap items-center gap-3">
         <ToggleGroup
           type="single"
@@ -238,7 +271,7 @@ export default function Salles() {
         </Badge>
       </div>
 
-      {/* Rooms display */}
+      {/* Liste des salles */}
       {filteredRooms.length > 0 ? (
         <div
           className={cn(
@@ -248,15 +281,11 @@ export default function Salles() {
               : "flex flex-col"
           )}
         >
-          {filteredRooms.map((room) => (
-            <RoomCard
-              key={room.id}
-              id={room.id}
-              name={room.name}
-              floor={room.floor}
-              status={room.status}
-              conditions={room.conditions}
-              lastUpdated={room.lastUpdated}
+          {filteredRooms.map((item: any) => (
+            <RoomCardWithData
+              key={item._id}
+              room={item}
+              availability={availabilityByRoomId.get(item._id)}
             />
           ))}
         </div>

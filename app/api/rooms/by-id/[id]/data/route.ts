@@ -104,12 +104,17 @@ export async function GET(
         (d) => d.deviceId.toString() === device._id.toString()
       );
 
+      const deviceDataWithSerial = deviceData.map((d) => ({
+        ...d,
+        serialNumber: d.serialNumber || device.serialNumber,
+      }));
+
       const stats = {
-        temperature: calculateStats(deviceData.map(d => d.temperature).filter(v => v != null)),
-        humidity: calculateStats(deviceData.map(d => d.humidity).filter(v => v != null)),
-        co2: calculateStats(deviceData.map(d => d.co2).filter(v => v != null)),
-        decibel: calculateStats(deviceData.map(d => d.decibel).filter(v => v != null)),
-        luminosity: calculateStats(deviceData.map(d => d.luminosity).filter(v => v != null)),
+        temperature: calculateStats(deviceDataWithSerial.map(d => d.temperature).filter(v => v != null)),
+        humidity: calculateStats(deviceDataWithSerial.map(d => d.humidity).filter(v => v != null)),
+        co2: calculateStats(deviceDataWithSerial.map(d => d.co2).filter(v => v != null)),
+        decibel: calculateStats(deviceDataWithSerial.map(d => d.decibel).filter(v => v != null)),
+        luminosity: calculateStats(deviceDataWithSerial.map(d => d.luminosity).filter(v => v != null)),
       };
 
       return {
@@ -118,8 +123,8 @@ export async function GET(
           serialNumber: device.serialNumber,
           name: device.name,
         },
-        count: deviceData.length,
-        data: deviceData.slice(0, limit),
+        count: deviceDataWithSerial.length,
+        data: deviceDataWithSerial.slice(0, limit),
         stats,
       };
     });
