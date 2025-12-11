@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { Device, DeviceData } from '@/models';
+import { DeviceStatus, DeviceConfigStatus } from '@/types/enums';
 import { logAudit } from '@/lib/audit';
 
 /**
@@ -259,8 +260,19 @@ export async function POST(
       measuredAt: new Date(),
     });
 
-    // Mettre à jour le lastSeenAt du device
+    // Mettre à jour le lastSeenAt et normaliser les statuts
     device.lastSeenAt = new Date();
+    const validStatuses = Object.values(DeviceStatus);
+    if (!validStatuses.includes(device.status as DeviceStatus)) {
+      device.status = DeviceStatus.ONLINE; // on considère qu'un device qui envoie des données est en ligne
+    } else if (device.status !== DeviceStatus.ONLINE) {
+      // Optionnel: on peut remonter le device en ONLINE quand il envoie une mesure
+      device.status = DeviceStatus.ONLINE;
+    }
+    const validConfigStatuses = Object.values(DeviceConfigStatus);
+    if (!validConfigStatuses.includes(device.configStatus as DeviceConfigStatus)) {
+      device.configStatus = DeviceConfigStatus.IN_PROGRESS; // fallback si absent/incorrect
+    }
     await device.save();
 
     const response = NextResponse.json(
