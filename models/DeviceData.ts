@@ -50,7 +50,7 @@ const DeviceDataSchema = new Schema<IDeviceData>(
     luminosity: {
       type: Number,
       min: 0,
-      max: 100,
+    max: 1000000,
     },
     measuredAt: {
       type: Date,

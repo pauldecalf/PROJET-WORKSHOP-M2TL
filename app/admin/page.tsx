@@ -53,7 +53,7 @@ type Device = {
   _id: string;
   name?: string;
   serialNumber: string;
-  roomId?: { name?: string };
+  roomId?: { _id?: string; name?: string; buildingId?: { _id: string; name?: string } };
   status?: string;
   batteryLevel?: number;
   lastSeenAt?: string;
@@ -291,12 +291,21 @@ export default function AdminPage() {
   const QuickDeviceAction = ({ device }: { device: Device }) => {
     const [open, setOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
+    const currentRoom = rooms.find(
+      (r) =>
+        r._id === (device.roomId as any)?._id ||
+        r._id === (device.roomId as any)
+    );
+    const initialBuildingId =
+      (currentRoom?.buildingId as any)?._id || (currentRoom?.buildingId as any) || "";
     const [form, setForm] = useState({
       name: device.name ?? "",
       status: device.status ?? "UNKNOWN",
       configStatus: device.configStatus ?? "PENDING",
       batteryLevel: device.batteryLevel ?? "",
       isPoweredOn: device.isPoweredOn ?? true,
+      buildingId: initialBuildingId,
+      roomId: currentRoom?._id ?? "",
     });
 
     const handleSubmit = async () => {
@@ -310,6 +319,7 @@ export default function AdminPage() {
             configStatus: device.configStatus === "SCAN_BY_CARD" ? "CONFIGURED" : form.configStatus,
             batteryLevel: form.batteryLevel === "" ? undefined : Number(form.batteryLevel),
             isPoweredOn: form.isPoweredOn,
+            roomId: form.roomId || undefined,
           }),
         });
         setOpen(false);
@@ -336,6 +346,53 @@ export default function AdminPage() {
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Bâtiment</Label>
+              <Select
+                value={form.buildingId}
+                onValueChange={(v) =>
+                  setForm((f) => ({
+                    ...f,
+                    buildingId: v,
+                    roomId: "",
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir un bâtiment" />
+                </SelectTrigger>
+                <SelectContent>
+                  {buildings.map((b) => (
+                    <SelectItem key={b._id} value={b._id}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Salle</Label>
+              <Select
+                value={form.roomId}
+                onValueChange={(v) => setForm((f) => ({ ...f, roomId: v }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir une salle" />
+                </SelectTrigger>
+                <SelectContent>
+                  {rooms
+                    .filter((r) =>
+                      form.buildingId ? ((r.buildingId as any)?._id || (r.buildingId as any)) === form.buildingId : true
+                    )
+                    .map((r) => (
+                      <SelectItem key={r._id} value={r._id}>
+                        {r.name} {r.buildingId?.name ? `- ${r.buildingId.name}` : ""}{" "}
+                        {r.floor !== undefined ? `(Étage ${r.floor})` : ""}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>Statut</Label>
@@ -404,12 +461,21 @@ export default function AdminPage() {
     const isOnline = device.status === "ONLINE";
     const [open, setOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
+    const currentRoom = rooms.find(
+      (r) =>
+        r._id === (device.roomId as any)?._id ||
+        r._id === (device.roomId as any)
+    );
+    const initialBuildingId =
+      (currentRoom?.buildingId as any)?._id || (currentRoom?.buildingId as any) || "";
     const [form, setForm] = useState({
       name: device.name ?? "",
       status: device.status ?? "UNKNOWN",
       configStatus: device.configStatus ?? "PENDING",
       batteryLevel: device.batteryLevel ?? "",
       isPoweredOn: device.isPoweredOn ?? true,
+      buildingId: initialBuildingId,
+      roomId: currentRoom?._id ?? "",
     });
 
     const handleSubmit = async () => {
@@ -423,6 +489,7 @@ export default function AdminPage() {
             configStatus: device.configStatus === "SCAN_BY_CARD" ? "CONFIGURED" : form.configStatus,
             batteryLevel: form.batteryLevel === "" ? undefined : Number(form.batteryLevel),
             isPoweredOn: form.isPoweredOn,
+            roomId: form.roomId || undefined,
           }),
         });
         if (res.ok) {
@@ -473,6 +540,53 @@ export default function AdminPage() {
                     onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                   />
                 </div>
+            <div className="space-y-2">
+              <Label>Bâtiment</Label>
+              <Select
+                value={form.buildingId}
+                onValueChange={(v) =>
+                  setForm((f) => ({
+                    ...f,
+                    buildingId: v,
+                    roomId: "",
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir un bâtiment" />
+                </SelectTrigger>
+                <SelectContent>
+                  {buildings.map((b) => (
+                    <SelectItem key={b._id} value={b._id}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Salle</Label>
+              <Select
+                value={form.roomId}
+                onValueChange={(v) => setForm((f) => ({ ...f, roomId: v }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir une salle" />
+                </SelectTrigger>
+                <SelectContent>
+                  {rooms
+                    .filter((r) =>
+                      form.buildingId ? ((r.buildingId as any)?._id || (r.buildingId as any)) === form.buildingId : true
+                    )
+                    .map((r) => (
+                      <SelectItem key={r._id} value={r._id}>
+                        {r.name} {r.buildingId?.name ? `- ${r.buildingId.name}` : ""}{" "}
+                        {r.floor !== undefined ? `(Étage ${r.floor})` : ""}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
                 <div className="space-y-2">
                   <Label>Statut</Label>
                   <Select
