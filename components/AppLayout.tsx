@@ -69,12 +69,15 @@ export function AppLayout({ children }: AppLayoutProps) {
                   <Button
                     key={item.href}
                     asChild
+                    variant="ghost"
                     className={cn(
                       "w-full justify-start gap-3 text-sm font-medium",
-                      active
-                        ? "bg-sidebar-accent text-sidebar-foreground hover:bg-sidebar-accent"
-                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                      "hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                      "data-[active=true]:bg-sidebar-primary/10 data-[active=true]:text-sidebar-foreground",
+                      "data-[active=true]:border data-[active=true]:border-sidebar-primary/40",
+                      "text-sidebar-foreground/80"
                     )}
+                    data-active={active}
                   >
                     <Link href={item.href} onClick={() => setSidebarOpen(false)}>
                       <Icon className="h-5 w-5" />

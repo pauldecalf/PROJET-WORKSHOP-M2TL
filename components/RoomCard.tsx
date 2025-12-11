@@ -26,6 +26,7 @@ interface RoomCardProps {
   status: "available" | "occupied" | "alert";
   conditions: RoomConditions;
   lastUpdated?: string;
+  timeseries?: React.ReactNode;
 }
 
 export function RoomCard({
@@ -35,6 +36,7 @@ export function RoomCard({
   status,
   conditions,
   lastUpdated,
+  timeseries,
 }: RoomCardProps) {
   const statusConfig = {
     available: {
@@ -138,6 +140,11 @@ export function RoomCard({
               <span className="text-xs font-medium text-muted-foreground">Luminosité</span>
             </div>
             <p className="mt-1 text-lg font-semibold text-foreground">{conditions.brightness}%</p>
+          </div>
+        )}
+        {timeseries && (
+          <div className="col-span-2">
+            {timeseries}
           </div>
         )}
       </CardContent>

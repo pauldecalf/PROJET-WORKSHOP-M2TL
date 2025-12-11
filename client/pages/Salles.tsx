@@ -3,6 +3,14 @@
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { Grip, List } from "lucide-react";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
 
 import { RoomCard } from "@/components/RoomCard";
 import { Badge } from "@/components/ui/badge";
@@ -67,6 +75,32 @@ function useRoomData(roomId: string | undefined) {
   };
 }
 
+function useRoomTimeseries(roomId: string | undefined) {
+  const { data, error, isLoading } = useSWR(
+    roomId ? `/api/rooms/by-id/${roomId}/data?limit=50` : null,
+    fetcher,
+  );
+
+  // Aplatit toutes les mesures des devices, triées par date décroissante
+  const series: Array<{ time: string; temperature?: number; co2?: number; humidity?: number }> = [];
+  const devices = data?.devices ?? [];
+  devices.forEach((d: any) => {
+    (d.data ?? []).forEach((m: any) => {
+      series.push({
+        time: m.measuredAt ?? m.createdAt,
+        temperature: m.temperature,
+        co2: m.co2,
+        humidity: m.humidity,
+      });
+    });
+  });
+  series.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+  // Limiter pour éviter trop de points
+  const limited = series.slice(0, 50).reverse(); // reverse pour l'axe X croissant
+
+  return { series: limited, isLoading, error };
+}
+
 function RoomCardWithData({
   room,
   availability,
@@ -75,6 +109,7 @@ function RoomCardWithData({
   availability?: any;
 }) {
   const { latest } = useRoomData(room._id);
+  const { series } = useRoomTimeseries(room._id);
 
   return (
     <RoomCard
@@ -95,6 +130,65 @@ function RoomCardWithData({
           : latest?.measuredAt
             ? new Date(latest.measuredAt).toLocaleTimeString()
             : undefined
+      }
+      timeseries={
+        series.length > 0 ? (
+          <div className="h-32 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={series}>
+                <XAxis
+                  dataKey="time"
+                  tickFormatter={(t) => new Date(t).toLocaleTimeString()}
+                  hide
+                />
+                <YAxis
+                  yAxisId="temp"
+                  hide
+                  domain={['dataMin-2', 'dataMax+2']}
+                />
+                <YAxis
+                  yAxisId="co2"
+                  orientation="right"
+                  hide
+                  domain={['auto', 'auto']}
+                />
+                <Tooltip
+                  labelFormatter={(t) => new Date(t as string).toLocaleString()}
+                  formatter={(value: any, name: any) => {
+                    if (name === "temperature") return [value, "Temp (°C)"];
+                    if (name === "co2") return [value, "CO₂ (ppm)"];
+                    if (name === "humidity") return [value, "Humidité (%)"];
+                    return [value, name];
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="temperature"
+                  stroke="#2563eb"
+                  dot={false}
+                  strokeWidth={2}
+                  yAxisId="temp"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="humidity"
+                  stroke="#f97316"
+                  dot={false}
+                  strokeWidth={2}
+                  yAxisId="temp"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="co2"
+                  stroke="#16a34a"
+                  dot={false}
+                  strokeWidth={2}
+                  yAxisId="co2"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        ) : null
       }
     />
   );
