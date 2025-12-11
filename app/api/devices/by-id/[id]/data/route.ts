@@ -169,6 +169,10 @@ export async function GET(
  *           schema:
  *             type: object
  *             properties:
+ *               serialNumber:
+ *                 type: string
+ *                 description: Serial Number du device (auto-déduit)
+ *                 example: "ESP32-001"
  *               temperature:
  *                 type: number
  *                 description: Température en °C
@@ -261,7 +265,10 @@ export async function POST(
     return NextResponse.json(
       {
         success: true,
-        data: deviceData,
+        data: {
+          ...deviceData.toObject(),
+          serialNumber: device.serialNumber,
+        },
       },
       { status: 201 }
     );

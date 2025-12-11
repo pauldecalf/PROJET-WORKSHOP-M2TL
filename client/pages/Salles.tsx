@@ -30,17 +30,28 @@ type RoomData = {
   co2?: number;
   noiseLevel?: number;
   luminosity?: number;
-  createdAt?: string;
+  measuredAt?: string;
 };
 
-// Récupère les données de la salle (agrégation côté API) et prend la plus récente
+// Récupère les données de la salle (agrégation côté API) et prend la plus récente tous devices confondus
 function useRoomData(roomId: string | undefined) {
   const { data, error, isLoading } = useSWR(
-    roomId ? `/api/rooms/by-id/${roomId}/data` : null,
+    roomId ? `/api/rooms/by-id/${roomId}/data?limit=1` : null,
     fetcher,
   );
 
-  const latest: RoomData | undefined = data?.data?.[0];
+  // L'API retourne devices: [{ data: [...] }]; on prend la première mesure de chaque device puis la plus récente
+  const devices = data?.devices ?? [];
+  const measures: RoomData[] = devices
+    .map((d: any) => d.data?.[0])
+    .filter(Boolean)
+    .sort((a: any, b: any) => {
+      const ta = new Date(a.measuredAt ?? a.createdAt ?? 0).getTime();
+      const tb = new Date(b.measuredAt ?? b.createdAt ?? 0).getTime();
+      return tb - ta;
+    });
+  const latest: RoomData | undefined = measures[0];
+
   return {
     isLoading,
     error,
@@ -50,7 +61,7 @@ function useRoomData(roomId: string | undefined) {
           co2: latest.co2,
           noiseLevel: latest.noiseLevel ?? (latest as any).noise,
           luminosity: latest.luminosity ?? (latest as any).brightness,
-          createdAt: latest.createdAt,
+          measuredAt: latest.measuredAt ?? (latest as any).createdAt,
         }
       : undefined,
   };
@@ -81,8 +92,8 @@ function RoomCardWithData({
       lastUpdated={
         availability?.lastUpdateAt
           ? new Date(availability.lastUpdateAt).toLocaleTimeString()
-          : latest?.createdAt
-            ? new Date(latest.createdAt).toLocaleTimeString()
+          : latest?.measuredAt
+            ? new Date(latest.measuredAt).toLocaleTimeString()
             : undefined
       }
     />
