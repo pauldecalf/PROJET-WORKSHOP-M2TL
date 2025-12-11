@@ -78,8 +78,9 @@ export async function POST(request: NextRequest) {
 
     // Mettre le statut de config du device en SCAN_BY_CARD (processus de scan/config par badge)
     device.configStatus = DeviceConfigStatus.SCAN_BY_CARD;
-    // S'assurer que status a une valeur valide
-    if (!device.status) {
+    // S'assurer que status est dans l'enum DeviceStatus
+    const validStatuses = Object.values(DeviceStatus);
+    if (!validStatuses.includes(device.status as DeviceStatus)) {
       device.status = DeviceStatus.UNKNOWN;
     }
     await device.save();
