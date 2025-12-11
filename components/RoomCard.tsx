@@ -24,10 +24,8 @@ interface RoomCardProps {
   name: string;
   floor: number;
   status: "available" | "occupied" | "alert";
-  actualStatus?: string;
   conditions: RoomConditions;
   lastUpdated?: string;
-  timeseries?: React.ReactNode;
 }
 
 export function RoomCard({

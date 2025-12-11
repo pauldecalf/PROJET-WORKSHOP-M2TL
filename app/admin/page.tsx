@@ -307,7 +307,7 @@ export default function AdminPage() {
           body: JSON.stringify({
             name: form.name,
             status: form.status,
-            configStatus: form.configStatus,
+            configStatus: device.configStatus === "SCAN_BY_CARD" ? "CONFIGURED" : form.configStatus,
             batteryLevel: form.batteryLevel === "" ? undefined : Number(form.batteryLevel),
             isPoweredOn: form.isPoweredOn,
           }),
@@ -414,18 +414,21 @@ export default function AdminPage() {
 
     const handleSubmit = async () => {
       startTransition(async () => {
-        await fetch(`/api/devices/by-id/${device._id}`, {
+        const res = await fetch(`/api/devices/by-id/${device._id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: form.name,
             status: form.status,
-            configStatus: form.configStatus,
+            configStatus: device.configStatus === "SCAN_BY_CARD" ? "CONFIGURED" : form.configStatus,
             batteryLevel: form.batteryLevel === "" ? undefined : Number(form.batteryLevel),
             isPoweredOn: form.isPoweredOn,
           }),
         });
-        setOpen(false);
+        if (res.ok) {
+          mutate("/api/devices");
+          setOpen(false);
+        }
       });
     };
 
