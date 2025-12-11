@@ -18,13 +18,8 @@ import { Device } from '@/models';
  *           schema:
  *             type: object
  *             required:
- *               - adminKey
  *               - serialNumber
  *             properties:
- *               adminKey:
- *                 type: string
- *                 description: Clé admin (ou token) pour autoriser le scan
- *                 example: "super-secret-admin-key"
  *               serialNumber:
  *                 type: string
  *                 description: Numéro de série du device
@@ -60,23 +55,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validation
-    if (!body.adminKey || !body.serialNumber) {
+    if (!body.serialNumber) {
       return NextResponse.json(
         {
           success: false,
-          error: 'adminKey et serialNumber sont requis',
+          error: 'serialNumber est requis',
         },
         { status: 400 }
-      );
-    }
-
-    if (process.env.ADMIN_NFC_KEY && body.adminKey !== process.env.ADMIN_NFC_KEY) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'adminKey invalide',
-        },
-        { status: 401 }
       );
     }
 

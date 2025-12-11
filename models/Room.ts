@@ -11,6 +11,7 @@ export interface IRoom extends Document {
   capacity?: number;
   mapX?: number;
   mapY?: number;
+  currentStatus?: string;
   createdAt: Date;
 }
 
@@ -37,6 +38,10 @@ const RoomSchema = new Schema<IRoom>(
     },
     mapY: {
       type: Number,
+    },
+    currentStatus: {
+      type: String,
+      maxlength: 50,
     },
   },
   {

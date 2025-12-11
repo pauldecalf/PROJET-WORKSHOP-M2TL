@@ -111,6 +111,11 @@ export async function GET(request: NextRequest) {
  *                 type: integer
  *                 description: Étage
  *                 example: 1
+ *               currentStatus:
+ *                 type: string
+ *                 enum: [AVAILABLE, OCCUPIED, UNKNOWN]
+ *                 description: Statut courant initial
+ *                 example: AVAILABLE
  *               capacity:
  *                 type: integer
  *                 description: Capacité en personnes
@@ -177,6 +182,7 @@ export async function POST(request: NextRequest) {
       buildingId: body.buildingId,
       name: body.name,
       floor: body.floor,
+      currentStatus: body.currentStatus,
       capacity: body.capacity,
       mapX: body.mapX,
       mapY: body.mapY,
