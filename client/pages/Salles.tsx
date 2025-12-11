@@ -82,7 +82,7 @@ function useRoomTimeseries(roomId: string | undefined) {
   );
 
   // Aplatit toutes les mesures des devices, triées par date décroissante
-  const series: Array<{ time: string; temperature?: number; co2?: number; humidity?: number }> = [];
+  const series: Array<{ time: string; temperature?: number; co2?: number; humidity?: number; luminosity?: number }> = [];
   const devices = data?.devices ?? [];
   devices.forEach((d: any) => {
     (d.data ?? []).forEach((m: any) => {
@@ -91,6 +91,7 @@ function useRoomTimeseries(roomId: string | undefined) {
         temperature: m.temperature,
         co2: m.co2,
         humidity: m.humidity,
+        luminosity: m.luminosity ?? (m as any).brightness,
       });
     });
   });
@@ -145,13 +146,24 @@ function RoomCardWithData({
                 <YAxis
                   yAxisId="temp"
                   hide
-                  domain={['dataMin-2', 'dataMax+2']}
+                  domain={['dataMin-5', 'dataMax+8']}
+                />
+                <YAxis
+                  yAxisId="hum"
+                  hide
+                  domain={['dataMin-10', 'dataMax+12']}
                 />
                 <YAxis
                   yAxisId="co2"
                   orientation="right"
                   hide
-                  domain={['auto', 'auto']}
+                  domain={['dataMin-400', 'dataMax+800']}
+                />
+                <YAxis
+                  yAxisId="lux"
+                  orientation="right"
+                  hide
+                  domain={['dataMin-150', 'dataMax+350']}
                 />
                 <Tooltip
                   labelFormatter={(t) => new Date(t as string).toLocaleString()}
@@ -159,6 +171,7 @@ function RoomCardWithData({
                     if (name === "temperature") return [value, "Temp (°C)"];
                     if (name === "co2") return [value, "CO₂ (ppm)"];
                     if (name === "humidity") return [value, "Humidité (%)"];
+                    if (name === "luminosity") return [value, "Luminosité (lx)"];
                     return [value, name];
                   }}
                 />
@@ -176,7 +189,15 @@ function RoomCardWithData({
                   stroke="#f97316"
                   dot={false}
                   strokeWidth={2}
-                  yAxisId="temp"
+                  yAxisId="hum"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="luminosity"
+                  stroke="#facc15"
+                  dot={false}
+                  strokeWidth={2}
+                  yAxisId="lux"
                 />
                 <Line
                   type="monotone"

@@ -409,7 +409,7 @@ MongoDB avec 13 collections :
             },
             luminosity: {
               type: 'number',
-              description: 'Luminosité en %',
+              description: 'Luminosité en lux',
               example: 75,
             },
             measuredAt: {

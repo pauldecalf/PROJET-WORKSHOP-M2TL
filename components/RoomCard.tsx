@@ -142,9 +142,11 @@ export function RoomCard({
           <div className="rounded-md border bg-muted/50 p-3">
             <div className="flex items-center gap-2">
               <Sun className="h-4 w-4 text-muted-foreground" />
-              <span className="text-xs font-medium text-muted-foreground">Luminosité</span>
+              <span className="text-xs font-medium text-muted-foreground">Luminosité (lx)</span>
             </div>
-            <p className="mt-1 text-lg font-semibold text-foreground">{conditions.brightness}%</p>
+            <p className="mt-1 text-lg font-semibold text-foreground">
+              {conditions.brightness} lx
+            </p>
           </div>
         )}
         {timeseries && (

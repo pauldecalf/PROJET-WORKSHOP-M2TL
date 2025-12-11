@@ -67,7 +67,7 @@ export default function History() {
       </Card>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {["CO₂ (ppm)", "Température (°C)", "Bruit (dB)", "Luminosité (%)"].map((metric) => (
+        {["CO₂ (ppm)", "Température (°C)", "Bruit (dB)", "Luminosité (lx)"].map((metric) => (
           <Card key={metric}>
             <CardHeader>
               <CardTitle>{metric}</CardTitle>

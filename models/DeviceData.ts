@@ -11,7 +11,7 @@ export interface IDeviceData extends Document {
   humidity?: number;         // en %
   co2?: number;             // en ppm
   decibel?: number;         // en dB
-  luminosity?: number;      // en %
+  luminosity?: number;      // en lux
   measuredAt: Date;
   createdAt: Date;
 }
@@ -50,7 +50,7 @@ const DeviceDataSchema = new Schema<IDeviceData>(
     luminosity: {
       type: Number,
       min: 0,
-    max: 1000000,
+      max: 1000000,
     },
     measuredAt: {
       type: Date,
@@ -71,7 +71,6 @@ export const DeviceData: Model<IDeviceData> =
   mongoose.models.DeviceData ||
   mongoose.model<IDeviceData>('DeviceData', DeviceDataSchema);
 
-
-
-
+// Export explicite pour certains bundlers stricts
+export { DeviceDataSchema };
 
