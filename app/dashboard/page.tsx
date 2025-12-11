@@ -2,7 +2,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 async function fetchRoomsCount() {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/api/rooms`, {
+    // Utilise l'URL absolue si fournie, sinon requête relative (même origine)
+    const base =
+      process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
+      process.env.VERCEL_URL?.trim()?.startsWith("http")
+        ? process.env.VERCEL_URL
+        : "";
+
+    const res = await fetch(`${base}/api/rooms`, {
       method: "GET",
       cache: "no-store",
     });
