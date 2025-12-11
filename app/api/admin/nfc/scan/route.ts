@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import { Device } from '@/models';
+import { Device, RoomStatus } from '@/models';
 
 /**
  * @swagger
@@ -41,8 +41,6 @@ import { Device } from '@/models';
  *                   description: Device correspondant au numéro de série
  *       400:
  *         $ref: '#/components/responses/BadRequest'
- *       401:
- *         description: adminKey invalide
  *       404:
  *         description: Device non trouvé
  *       500:
@@ -69,6 +67,14 @@ export async function POST(request: NextRequest) {
       .populate('roomId')
       .lean();
 
+    // Mettre à jour le currentStatus de la salle associée si elle existe
+    if (device?.roomId?._id) {
+      await RoomStatus.updateOne(
+        { roomId: device.roomId._id },
+        { $set: { currentStatus: 'INCHANGE' } }
+      );
+    }
+
     return NextResponse.json({
       success: !!device,
       device: device
@@ -81,6 +87,7 @@ export async function POST(request: NextRequest) {
             configStatus: device.configStatus,
             batteryLevel: device.batteryLevel,
             lastSeenAt: device.lastSeenAt,
+            currentStatus: 'INCHANGE',
           }
         : null,
     });
