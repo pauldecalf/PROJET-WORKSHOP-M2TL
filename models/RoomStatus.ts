@@ -8,6 +8,7 @@ import { RoomAvailability } from '@/types/enums';
 export interface IRoomStatus extends Document {
   roomId: Types.ObjectId;
   availability: RoomAvailability;
+  currentStatus?: string;
   lastUpdateAt: Date;
   sourceDeviceId?: Types.ObjectId;
   sourceSensorId?: Types.ObjectId;
@@ -27,6 +28,10 @@ const RoomStatusSchema = new Schema<IRoomStatus>(
       enum: Object.values(RoomAvailability),
       required: true,
       default: RoomAvailability.UNKNOWN,
+    },
+    currentStatus: {
+      type: String,
+      maxlength: 50,
     },
     lastUpdateAt: {
       type: Date,

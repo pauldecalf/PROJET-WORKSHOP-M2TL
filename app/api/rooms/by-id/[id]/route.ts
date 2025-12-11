@@ -105,6 +105,10 @@ export async function GET(
  *               floor:
  *                 type: integer
  *                 example: 2
+ *               currentStatus:
+ *                 type: string
+ *                 enum: [AVAILABLE, OCCUPIED, UNKNOWN]
+ *                 example: AVAILABLE
  *               capacity:
  *                 type: integer
  *                 example: 40

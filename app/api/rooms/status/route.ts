@@ -89,6 +89,7 @@ export async function GET(request: NextRequest) {
       $project: {
         _id: 1,
         availability: 1,
+        currentStatus: 1,
         lastUpdateAt: 1,
         reason: 1,
         room: {

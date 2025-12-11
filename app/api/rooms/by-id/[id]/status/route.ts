@@ -85,6 +85,7 @@ export async function GET(
         data: {
           roomId: resolvedParams.id,
           availability: 'UNKNOWN',
+          currentStatus: 'UNKNOWN',
           lastUpdateAt: null,
           reason: 'Aucun statut enregistré',
           room: room,
@@ -94,7 +95,10 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: status,
+      data: {
+        ...status,
+        currentStatus: status.currentStatus || status.availability,
+      },
     });
   } catch (error: any) {
     const resolvedParams = await params;

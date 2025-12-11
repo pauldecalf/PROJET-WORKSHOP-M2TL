@@ -132,6 +132,7 @@ export default function AdminPage() {
     id: "",
     name: "",
     floor: "",
+    currentStatus: "",
     message: "",
     error: "",
     pending: false,
@@ -267,6 +268,7 @@ export default function AdminPage() {
         body: JSON.stringify({
           name: editRoomForm.name || undefined,
           floor: editRoomForm.floor === "" ? undefined : Number(editRoomForm.floor),
+          currentStatus: editRoomForm.currentStatus || undefined,
         }),
       });
       if (!res.ok) {
@@ -692,6 +694,7 @@ export default function AdminPage() {
                     id: v,
                     name: room?.name ?? f.name,
                     floor: room?.floor?.toString() ?? f.floor,
+        currentStatus: (room as any)?.currentStatus || f.currentStatus,
                   }));
                 }}
               >
@@ -724,6 +727,22 @@ export default function AdminPage() {
                 onChange={(e) => setEditRoomForm((f) => ({ ...f, floor: e.target.value }))}
               />
             </div>
+          <div className="space-y-2">
+            <Label>Statut courant</Label>
+            <Select
+              value={editRoomForm.currentStatus}
+              onValueChange={(v) => setEditRoomForm((f) => ({ ...f, currentStatus: v }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="AVAILABLE">AVAILABLE</SelectItem>
+                <SelectItem value="OCCUPIED">OCCUPIED</SelectItem>
+                <SelectItem value="UNKNOWN">UNKNOWN</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
             {editRoomForm.error && <p className="text-sm text-red-600">{editRoomForm.error}</p>}
             {editRoomForm.message && <p className="text-sm text-green-600">{editRoomForm.message}</p>}
             <Button type="submit" className="w-full" disabled={editRoomForm.pending}>
