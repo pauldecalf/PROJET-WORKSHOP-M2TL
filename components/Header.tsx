@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, User, Shield } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Header() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -39,7 +40,10 @@ export function Header() {
         </Link>
 
         {/* Widget Profil / Connexion */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
+          {/* Toggle Thème */}
+          <ThemeToggle />
+          
           {isAuthenticated && user ? (
             // Menu utilisateur connecté
             <DropdownMenu>
