@@ -1060,7 +1060,17 @@ function AdminPageContent() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          {/* Message mobile */}
+          <div className="md:hidden p-6 text-center">
+            <p className="text-muted-foreground">
+              📱 Disponible sur desktop uniquement
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Cette fonctionnalité nécessite un écran plus large
+            </p>
+          </div>
+          {/* Tableau desktop */}
+          <Table className="hidden md:table">
             <TableHeader>
               <TableRow>
                 <TableHead>Nom</TableHead>
@@ -1102,7 +1112,7 @@ function AdminPageContent() {
           </Link>
         </CardHeader>
         {logsChartData.length > 0 && (
-          <CardContent>
+          <CardContent className="hidden md:block">
             <div className="h-40">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={logsChartData}>
@@ -1116,7 +1126,17 @@ function AdminPageContent() {
           </CardContent>
         )}
         <CardContent className="p-0">
-          <Table>
+          {/* Message mobile */}
+          <div className="md:hidden p-6 text-center">
+            <p className="text-muted-foreground">
+              📱 Disponible sur desktop uniquement
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Cette fonctionnalité nécessite un écran plus large
+            </p>
+          </div>
+          {/* Tableau desktop */}
+          <Table className="hidden md:table">
             <TableHeader>
               <TableRow>
                 <TableHead>Action</TableHead>

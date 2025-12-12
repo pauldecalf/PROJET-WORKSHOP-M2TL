@@ -28,13 +28,13 @@ export function Header() {
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="flex h-16 items-center justify-between px-6">
         {/* Logo / Nom */}
-        <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
+        <Link href="/" className="flex items-center gap-2 md:gap-3 hover:opacity-80 transition-opacity">
+          <div className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm md:text-lg">
             IoT
           </div>
           <div>
-            <h1 className="text-xl font-bold text-foreground">Digital Campus IoT</h1>
-            <p className="text-xs text-muted-foreground">Workshop M2 TL</p>
+            <h1 className="text-sm md:text-xl font-bold text-foreground">Digital Campus IoT</h1>
+            <p className="text-[10px] md:text-xs text-muted-foreground">Workshop M2 TL</p>
           </div>
         </Link>
 

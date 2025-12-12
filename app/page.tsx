@@ -230,7 +230,7 @@ export default function HomePage() {
       <section className="relative overflow-hidden rounded-3xl border bg-gradient-to-br from-primary/10 via-card to-card p-8 shadow-lg md:p-12">
         <div className="relative z-10 grid gap-8 md:grid-cols-2">
           <div className="space-y-6">
-            <Badge variant="secondary" className="text-sm font-semibold">
+            <Badge variant="secondary" className="text-xs md:text-sm font-semibold">
               🎓 Digital Campus IoT - Workshop M2 TL
             </Badge>
             <h1 className="text-4xl font-extrabold tracking-tight text-foreground md:text-5xl lg:text-6xl">
