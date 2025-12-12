@@ -19,6 +19,7 @@ import type {
   AuthResponse,
   RegisterInput,
 } from '@/types';
+import { CommandType } from '@/types';
 
 // =============================
 // Configuration
@@ -436,14 +437,14 @@ export const devicesApi = {
    * Redémarrer un device
    */
   async reboot(id: string): Promise<any> {
-    return this.sendCommand(id, { deviceId: id, command: 'REBOOT' });
+    return this.sendCommand(id, { deviceId: id, command: CommandType.REBOOT });
   },
 
   /**
    * Éteindre un device
    */
   async shutdown(id: string): Promise<any> {
-    return this.sendCommand(id, { deviceId: id, command: 'SHUTDOWN' });
+    return this.sendCommand(id, { deviceId: id, command: CommandType.SHUTDOWN });
   },
 
   /**
@@ -452,7 +453,7 @@ export const devicesApi = {
   async setLed(id: string, state: 'on' | 'off'): Promise<any> {
     return this.sendCommand(id, {
       deviceId: id,
-      command: 'SET_LED_STATE',
+      command: CommandType.SET_LED_STATE,
       parameters: { state },
     });
   },
