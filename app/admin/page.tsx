@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import useSWR from "swr";
 import Link from "next/link";
-import { Radio, Settings2, Power, PowerOff } from "lucide-react";
+import { Radio, Settings2, Power, PowerOff, ArrowLeft, Home } from "lucide-react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -73,12 +73,21 @@ function AdminPageContent() {
 
   const { data: devicesRes } = useSWR("/api/devices", fetcher);
   const devices: Device[] = devicesRes?.data ?? [];
+  const devicesOnline = devices.filter((d) => d.status === "ONLINE").length;
   const scannedDevices = devices.filter((d) => d.configStatus === "SCAN_BY_CARD");
   const { data: buildingsRes } = useSWR("/api/buildings", fetcher);
   const buildings: { _id: string; name: string }[] = buildingsRes?.data ?? [];
   const { data: roomsRes } = useSWR("/api/rooms", fetcher);
   const rooms: { _id: string; name: string; buildingId?: { _id: string; name: string }; floor?: number }[] =
     roomsRes?.data ?? [];
+  
+  // KPIs pour les statistiques
+  const kpis = [
+    { label: "Salles totales", value: rooms.length.toString() },
+    { label: "Capteurs en ligne", value: devicesOnline.toString() },
+    { label: "Capteurs totaux", value: devices.length.toString() },
+    { label: "Alertes actives", value: scannedDevices.length.toString() },
+  ];
 
   const logsSeries = logs
     .map((l) => ({
@@ -655,19 +664,37 @@ function AdminPageContent() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Administration</h1>
-          <p className="text-muted-foreground mt-2">
-            Supervision des logs et ressources
-          </p>
-        </div>
-        <Link
-          href="/history"
-          className="text-sm text-primary underline underline-offset-4 hover:text-primary/80"
-        >
-          Voir l'historique complet
+      <div className="space-y-3">
+        <Link href="/">
+          <Button variant="outline" size="sm" className="gap-2 mb-4">
+            <ArrowLeft className="h-4 w-4" />
+            Retour aux salles
+          </Button>
         </Link>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-foreground">Administration</h1>
+          <Link
+            href="/history"
+            className="text-sm text-primary underline underline-offset-4 hover:text-primary/80"
+          >
+            Voir l'historique complet
+          </Link>
+        </div>
+        <p className="text-muted-foreground">
+          Supervision des logs et ressources
+        </p>
+      </div>
+
+      {/* Cartes de statistiques */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {kpis.map((kpi) => (
+          <Card key={kpi.label}>
+            <CardHeader className="pb-2">
+              <CardDescription>{kpi.label}</CardDescription>
+              <CardTitle className="text-3xl font-bold text-foreground">{kpi.value}</CardTitle>
+            </CardHeader>
+          </Card>
+        ))}
       </div>
 
       {scannedDevices.length > 0 && (

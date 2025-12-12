@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import useSWR from "swr";
 import {
   Dialog,
@@ -20,7 +19,6 @@ import {
 } from "recharts";
 import { RoomCard } from "@/components/RoomCard";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,8 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Building2, Wifi, Shield, Gauge } from "lucide-react";
+import { Wifi, Gauge } from "lucide-react";
 import { useRoomLatest, useRoomSeries, mapLuminosityToAvailability } from "@/hooks/useRoomData";
 
 const fetcher = (url: string) => fetch(url, { cache: "no-store" }).then((r) => r.json());
@@ -243,27 +240,6 @@ export default function HomePage() {
               Visualisez en temps réel la disponibilité, la température et la qualité de l'air de toutes les salles du campus.
               Une solution moderne pour optimiser l'utilisation des espaces.
             </p>
-            <div className="flex flex-wrap gap-3">
-              <Button 
-                size="lg" 
-                onClick={() => window.scrollTo({ top: 600, behavior: "smooth" })}
-                className="shadow-lg"
-              >
-                <Building2 className="mr-2 h-5 w-5" />
-                Voir les salles
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                asChild
-                className="shadow-md"
-              >
-                <Link href="/admin/login">
-                  <Shield className="mr-2 h-5 w-5" />
-                  Connexion administrateur
-                </Link>
-              </Button>
-            </div>
           </div>
 
           {/* Features cards */}

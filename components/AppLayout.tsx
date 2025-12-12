@@ -3,10 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
   Building2,
-  Radio,
-  TrendingUp,
   Settings,
   Menu,
   X,
@@ -45,7 +42,6 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   const navItems = [
     { label: "Salles", href: "/", icon: Building2 },
-    { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     ...(isAuthenticated
       ? [{ label: "Administration", href: "/admin", icon: Settings }]
       : []),

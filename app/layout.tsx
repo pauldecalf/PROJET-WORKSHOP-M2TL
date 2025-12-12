@@ -1,6 +1,6 @@
-import { AppLayout } from "@/components/AppLayout";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { Header } from "@/components/Header";
 import type { Metadata } from "next";
 import "@/app/globals.css";
 
@@ -24,7 +24,12 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <AppLayout>{children}</AppLayout>
+            <div className="min-h-screen">
+              <Header />
+              <main className="p-6 md:p-8 lg:p-10">
+                {children}
+              </main>
+            </div>
           </AuthProvider>
         </ThemeProvider>
       </body>
