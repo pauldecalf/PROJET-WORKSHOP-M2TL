@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Building2,
@@ -10,6 +10,8 @@ import {
   Settings,
   Menu,
   X,
+  LogOut,
+  User,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -17,6 +19,16 @@ import { ModeToggle } from "@/components/ModeToggle";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -25,18 +37,35 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, isAuthenticated, logout } = useAuth();
+
+  // Ne pas afficher le layout sur la page de login
+  const isLoginPage = pathname === "/admin/login";
 
   const navItems = [
-    { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "Salles", href: "/", icon: Building2 },
-    { label: "Administration", href: "/admin", icon: Settings },
+    { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    ...(isAuthenticated
+      ? [{ label: "Administration", href: "/admin", icon: Settings }]
+      : []),
   ];
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/");
+  };
 
   const isActive = (href: string) => {
     if (href === "/" && pathname === "/") return true;
     if (href !== "/" && pathname.startsWith(href)) return true;
     return false;
   };
+
+  // Si c'est la page de login, ne pas afficher le layout
+  if (isLoginPage) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="flex h-screen bg-background">
@@ -122,6 +151,43 @@ export function AppLayout({ children }: AppLayoutProps) {
             <div className="flex items-center gap-2">
               <Separator orientation="vertical" className="hidden h-6 lg:flex" />
               <ModeToggle />
+              
+              {/* User menu */}
+              {isAuthenticated && user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                      <Avatar className="h-9 w-9">
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                          {user.email.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium">{user.email}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {user.role === 'SUPERVISOR' ? 'Superviseur' : 'Étudiant'}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Déconnexion
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/admin/login">
+                    <User className="mr-2 h-4 w-4" />
+                    Connexion
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
         </header>

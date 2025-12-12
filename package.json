@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx scripts/seed-database.ts",
+    "create-admin": "tsx scripts/create-admin-user.ts",
     "fix-routes": "bash scripts/fix-routes.sh"
   },
   "dependencies": {

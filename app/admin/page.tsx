@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import useSWR from "swr";
 import Link from "next/link";
-import { Radio } from "lucide-react";
+import { Radio, Settings2, Power, PowerOff } from "lucide-react";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -61,7 +62,7 @@ type Device = {
   configStatus?: string;
 };
 
-export default function AdminPage() {
+function AdminPageContent() {
   const { mutate } = useSWRConfig();
   const {
     data: logsRes,
@@ -1146,6 +1147,14 @@ export default function AdminPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <ProtectedRoute requiredRoles={['SUPERVISOR']}>
+      <AdminPageContent />
+    </ProtectedRoute>
   );
 }
 

@@ -1,100 +1,128 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
-
-interface User {
-  id: string;
-  email: string;
-  displayName?: string;
-  role: string;
-}
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import type { User, LoginCredentials, AuthResponse } from '@/types';
+import { authApi } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (credentials: LoginCredentials) => Promise<void>;
+  logout: () => Promise<void>;
+  refreshAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Vérifier si l'utilisateur est déjà connecté
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('user');
-      const accessToken = localStorage.getItem('accessToken');
-
-      if (storedUser && accessToken) {
-        setUser(JSON.parse(storedUser));
-      }
+  /**
+   * Vérifie si l'utilisateur est déjà connecté au chargement
+   */
+  const refreshAuth = useCallback(async () => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      setIsLoading(false);
+      return;
     }
 
-    setLoading(false);
-  }, []);
-
-  const login = async (email: string, password: string) => {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.error || 'Erreur de connexion');
-    }
-
-    const data = await response.json();
-
-    // Stocker les tokens et les infos utilisateur
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
-    }
-
-    setUser(data.user);
-  };
-
-  const logout = () => {
-    // Supprimer les tokens
-    if (typeof window !== 'undefined') {
+    try {
+      // TODO: Implémenter un endpoint /auth/me pour récupérer l'utilisateur actuel
+      // Pour l'instant, on décode le token (temporaire)
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      setUser({
+        _id: payload.userId,
+        email: payload.email,
+        role: payload.role,
+        createdAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Erreur de refresh auth:', error);
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
+      setUser(null);
+    } finally {
+      setIsLoading(false);
     }
+  }, []);
 
-    setUser(null);
-    router.push('/admin/login');
+  useEffect(() => {
+    refreshAuth();
+  }, [refreshAuth]);
+
+  /**
+   * Connexion
+   */
+  const login = async (credentials: LoginCredentials) => {
+    setIsLoading(true);
+    try {
+      const response: AuthResponse = await authApi.login(credentials);
+      setUser(response.user);
+    } catch (error) {
+      console.error('Erreur de connexion:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        login,
-        logout,
-        isAuthenticated: !!user,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  /**
+   * Déconnexion
+   */
+  const logout = async () => {
+    try {
+      await authApi.logout();
+    } catch (error) {
+      console.error('Erreur de déconnexion:', error);
+    } finally {
+      setUser(null);
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+    }
+  };
+
+  const value: AuthContextType = {
+    user,
+    isAuthenticated: !!user,
+    isLoading,
+    login,
+    logout,
+    refreshAuth,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+/**
+ * Hook pour utiliser le contexte d'authentification
+ */
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth doit être utilisé dans un AuthProvider');
   }
   return context;
 }
 
+/**
+ * Hook pour vérifier si l'utilisateur a un rôle spécifique
+ */
+export function useRequireRole(allowedRoles: string[]) {
+  const { user, isAuthenticated } = useAuth();
+  
+  if (!isAuthenticated || !user) {
+    return false;
+  }
+  
+  return allowedRoles.includes(user.role);
+}
+
+/**
+ * Hook pour vérifier si l'utilisateur est admin/superviseur
+ */
+export function useIsAdmin() {
+  return useRequireRole(['SUPERVISOR']);
+}

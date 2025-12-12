@@ -1,11 +1,12 @@
 import { AppLayout } from "@/components/AppLayout";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AuthProvider } from "@/contexts/AuthContext";
 import type { Metadata } from "next";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
-  title: "RoomScan - Campus IoT",
-  description: "Real-time room monitoring system",
+  title: "Digital Campus IoT - Workshop M2 TL",
+  description: "Système de supervision IoT pour les salles de campus",
 };
 
 export default function RootLayout({
@@ -22,7 +23,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AppLayout>{children}</AppLayout>
+          <AuthProvider>
+            <AppLayout>{children}</AppLayout>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

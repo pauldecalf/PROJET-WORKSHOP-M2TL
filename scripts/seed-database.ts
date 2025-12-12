@@ -48,16 +48,26 @@ async function seedDatabase() {
 
     // Créer des utilisateurs
     console.log('👥 Création des utilisateurs...');
+    
+    // Importer hashPassword pour créer de vrais hash
+    const { hashPassword } = await import('../lib/auth');
+    
     const users = await User.create([
       {
-        email: 'supervisor@example.com',
-        passwordHash: '$2a$10$dummyhash1', // En production, utilisez bcrypt
+        email: 'admin@campus.fr',
+        passwordHash: await hashPassword('admin123'),
         role: UserRole.SUPERVISOR,
-        displayName: 'Admin Superviseur',
+        displayName: 'Administrateur Campus',
+      },
+      {
+        email: 'supervisor@example.com',
+        passwordHash: await hashPassword('supervisor123'),
+        role: UserRole.SUPERVISOR,
+        displayName: 'Superviseur',
       },
       {
         email: 'student@example.com',
-        passwordHash: '$2a$10$dummyhash2',
+        passwordHash: await hashPassword('student123'),
         role: UserRole.STUDENT,
         displayName: 'Étudiant Test',
       },
