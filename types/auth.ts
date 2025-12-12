@@ -2,6 +2,8 @@
  * Types pour l'authentification
  */
 
+import { UserRole } from './enums';
+
 export interface User {
   _id: string;
   email: string;
@@ -10,8 +12,6 @@ export interface User {
   lastName?: string;
   createdAt: string;
 }
-
-export type UserRole = 'SUPERVISOR' | 'STUDENT';
 
 export interface LoginCredentials {
   email: string;

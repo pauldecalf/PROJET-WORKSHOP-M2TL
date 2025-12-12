@@ -2,6 +2,8 @@
  * Types pour les devices IoT
  */
 
+import { DeviceStatus, DeviceConfigStatus, CommandType } from './enums';
+
 export interface Device {
   _id: string;
   serialNumber: string;
@@ -24,14 +26,6 @@ export interface Device {
   createdAt: string;
 }
 
-export type DeviceStatus = 'ONLINE' | 'OFFLINE' | 'ERROR' | 'UNKNOWN';
-
-export type DeviceConfigStatus = 
-  | 'PENDING' 
-  | 'IN_PROGRESS' 
-  | 'CONFIGURED' 
-  | 'SCAN_BY_CARD';
-
 export interface CreateDeviceInput {
   serialNumber: string;
   name?: string;
@@ -52,13 +46,4 @@ export interface DeviceCommand {
   command: CommandType;
   parameters?: Record<string, any>;
 }
-
-export type CommandType = 
-  | 'SET_SAMPLING_INTERVAL'
-  | 'SET_VISIBILITY'
-  | 'TURN_OFF'
-  | 'TURN_ON'
-  | 'SET_LED_STATE'
-  | 'REBOOT'
-  | 'SHUTDOWN';
 

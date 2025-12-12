@@ -2,6 +2,11 @@
  * Types pour les salles (Rooms)
  */
 
+import { RoomAvailability } from './enums';
+
+// Alias pour compatibilité
+export type RoomStatus = 'AVAILABLE' | 'OCCUPIED' | 'UNKNOWN';
+
 export interface Room {
   _id: string;
   buildingId: {
@@ -17,8 +22,6 @@ export interface Room {
   currentStatus?: RoomStatus;
   createdAt: string;
 }
-
-export type RoomStatus = 'AVAILABLE' | 'OCCUPIED' | 'UNKNOWN';
 
 export interface RoomWithLatestData extends Room {
   latestData?: {

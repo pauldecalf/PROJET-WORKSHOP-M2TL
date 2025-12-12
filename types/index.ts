@@ -2,7 +2,10 @@
  * Point d'entrée pour tous les types de l'application
  */
 
-// Auth
+// Enums d'abord (pour éviter les conflits)
+export * from './enums';
+
+// Auth (utilise UserRole de enums)
 export * from './auth';
 
 // Building
@@ -16,7 +19,4 @@ export * from './device';
 
 // Telemetry
 export * from './telemetry';
-
-// Enums (depuis le fichier existant)
-export * from './enums';
 

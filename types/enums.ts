@@ -43,6 +43,8 @@ export enum CommandType {
   TURN_OFF = 'TURN_OFF',
   TURN_ON = 'TURN_ON',
   SET_LED_STATE = 'SET_LED_STATE',
+  REBOOT = 'REBOOT',
+  SHUTDOWN = 'SHUTDOWN',
   OTA_UPDATE = 'OTA_UPDATE'
 }
 
