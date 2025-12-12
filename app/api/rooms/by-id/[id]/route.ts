@@ -183,3 +183,64 @@ export async function PATCH(
   }
 }
 
+/**
+ * @swagger
+ * /api/rooms/by-id/{id}:
+ *   delete:
+ *     summary: Supprimer une salle
+ *     description: Supprime une salle de la base de données
+ *     tags:
+ *       - Rooms
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la salle
+ *     responses:
+ *       200:
+ *         description: Salle supprimée avec succès
+ *       404:
+ *         description: Salle non trouvée
+ *       500:
+ *         description: Erreur serveur
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    await connectDB();
+
+    const resolvedParams = await params;
+    const room = await Room.findByIdAndDelete(resolvedParams.id);
+
+    if (!room) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Salle non trouvée',
+        },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Salle supprimée avec succès',
+    });
+  } catch (error: any) {
+    const resolvedParams = await params;
+    console.error(`Erreur DELETE /api/rooms/${resolvedParams.id}:`, error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Erreur lors de la suppression de la salle',
+        message: error.message,
+      },
+      { status: 500 }
+    );
+  }
+}
+

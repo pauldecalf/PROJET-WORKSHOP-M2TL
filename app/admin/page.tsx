@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import useSWR from "swr";
 import Link from "next/link";
-import { Radio, Settings2, Power, PowerOff, ArrowLeft, Home } from "lucide-react";
+import { Radio, Settings2, Power, PowerOff, ArrowLeft, Home, Trash2 } from "lucide-react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -27,6 +27,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { useSWRConfig } from "swr";
 import { AlertTriangle } from "lucide-react";
@@ -76,9 +87,9 @@ function AdminPageContent() {
   const devicesOnline = devices.filter((d) => d.status === "ONLINE").length;
   const scannedDevices = devices.filter((d) => d.configStatus === "SCAN_BY_CARD");
   const { data: buildingsRes } = useSWR("/api/buildings", fetcher);
-  const buildings: { _id: string; name: string }[] = buildingsRes?.data ?? [];
+  const buildings: { _id: string; name: string; address?: string; totalFloors?: number }[] = buildingsRes?.data ?? [];
   const { data: roomsRes } = useSWR("/api/rooms", fetcher);
-  const rooms: { _id: string; name: string; buildingId?: { _id: string; name: string }; floor?: number }[] =
+  const rooms: { _id: string; name: string; buildingId?: { _id: string; name: string }; floor?: number; currentStatus?: string }[] =
     roomsRes?.data ?? [];
   
   // KPIs pour les statistiques
@@ -104,199 +115,6 @@ function AdminPageContent() {
     .map(([date, count]) => ({ date, count }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
-  // Form states
-  const [buildingForm, setBuildingForm] = useState({
-    name: "",
-    address: "",
-    totalFloors: 5,
-    message: "",
-    error: "",
-    pending: false,
-  });
-  const [roomForm, setRoomForm] = useState({
-    buildingId: "",
-    name: "",
-    floor: 1,
-    message: "",
-    error: "",
-    pending: false,
-  });
-  const [deviceForm, setDeviceForm] = useState({
-    serialNumber: "",
-    name: "",
-    roomId: "",
-    message: "",
-    error: "",
-    pending: false,
-  });
-
-  const [editBuildingForm, setEditBuildingForm] = useState({
-    id: "",
-    name: "",
-    address: "",
-    totalFloors: "",
-    message: "",
-    error: "",
-    pending: false,
-  });
-
-  const [editRoomForm, setEditRoomForm] = useState({
-    id: "",
-    name: "",
-    floor: "",
-    currentStatus: "",
-    message: "",
-    error: "",
-    pending: false,
-  });
-
-  const submitBuilding = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setBuildingForm((f) => ({ ...f, pending: true, error: "", message: "" }));
-    try {
-      const res = await fetch("/api/buildings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: buildingForm.name,
-          address: buildingForm.address || undefined,
-          totalFloors: buildingForm.totalFloors || undefined,
-        }),
-      });
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        throw new Error(json?.error || "Erreur lors de la création du bâtiment");
-      }
-      setBuildingForm((f) => ({
-        ...f,
-        pending: false,
-        message: "Bâtiment créé",
-      }));
-      mutate("/api/buildings");
-    } catch (err: any) {
-      setBuildingForm((f) => ({ ...f, pending: false, error: err.message }));
-    }
-  };
-
-  const submitRoom = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setRoomForm((f) => ({ ...f, pending: true, error: "", message: "" }));
-    try {
-      const res = await fetch("/api/rooms", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          buildingId: roomForm.buildingId,
-          name: roomForm.name,
-          floor: roomForm.floor,
-        }),
-      });
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        throw new Error(json?.error || "Erreur lors de la création de la salle");
-      }
-      setRoomForm((f) => ({
-        ...f,
-        pending: false,
-        message: "Salle créée",
-      }));
-      mutate("/api/rooms");
-    } catch (err: any) {
-      setRoomForm((f) => ({ ...f, pending: false, error: err.message }));
-    }
-  };
-
-  const submitDevice = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setDeviceForm((f) => ({ ...f, pending: true, error: "", message: "" }));
-    try {
-      const res = await fetch("/api/devices", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          serialNumber: deviceForm.serialNumber,
-          name: deviceForm.name || undefined,
-          roomId: deviceForm.roomId || undefined,
-        }),
-      });
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        throw new Error(json?.error || "Erreur lors de la création du capteur");
-      }
-      setDeviceForm((f) => ({
-        serialNumber: "",
-        name: "",
-        roomId: "",
-        pending: false,
-        message: "Capteur créé",
-        error: "",
-      }));
-      mutate("/api/devices");
-    } catch (err: any) {
-      setDeviceForm((f) => ({ ...f, pending: false, error: err.message }));
-    }
-  };
-
-  const submitEditBuilding = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setEditBuildingForm((f) => ({ ...f, pending: true, error: "", message: "" }));
-    try {
-      if (!editBuildingForm.id) throw new Error("Choisir un bâtiment");
-      const res = await fetch(`/api/buildings/by-id/${editBuildingForm.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editBuildingForm.name || undefined,
-          address: editBuildingForm.address || undefined,
-          totalFloors:
-            editBuildingForm.totalFloors === ""
-              ? undefined
-              : Number(editBuildingForm.totalFloors),
-        }),
-      });
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        throw new Error(json?.error || "Erreur lors de la mise à jour du bâtiment");
-      }
-      setEditBuildingForm((f) => ({
-        ...f,
-        pending: false,
-        message: "Bâtiment mis à jour",
-      }));
-      mutate("/api/buildings");
-    } catch (err: any) {
-      setEditBuildingForm((f) => ({ ...f, pending: false, error: err.message }));
-    }
-  };
-
-  const submitEditRoom = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setEditRoomForm((f) => ({ ...f, pending: true, error: "", message: "" }));
-    try {
-      if (!editRoomForm.id) throw new Error("Choisir une salle");
-      const res = await fetch(`/api/rooms/by-id/${editRoomForm.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editRoomForm.name || undefined,
-          floor: editRoomForm.floor === "" ? undefined : Number(editRoomForm.floor),
-          currentStatus: editRoomForm.currentStatus || undefined,
-        }),
-      });
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        throw new Error(json?.error || "Erreur lors de la mise à jour de la salle");
-      }
-      setEditRoomForm((f) => ({
-        ...f,
-        pending: false,
-        message: "Salle mise à jour",
-      }));
-      mutate("/api/rooms");
-    } catch (err: any) {
-      setEditRoomForm((f) => ({ ...f, pending: false, error: err.message }));
-    }
-  };
 
   const QuickDeviceAction = ({ device }: { device: Device }) => {
     const [open, setOpen] = useState(false);
@@ -467,6 +285,492 @@ function AdminPageContent() {
     );
   };
 
+  const handleDeleteDevice = async (deviceId: string) => {
+    try {
+      const res = await fetch(`/api/devices/by-id/${deviceId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        mutate("/api/devices");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la suppression du device:", error);
+    }
+  };
+
+  const handleDeleteBuilding = async (buildingId: string) => {
+    try {
+      const res = await fetch(`/api/buildings/by-id/${buildingId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        mutate("/api/buildings");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la suppression du bâtiment:", error);
+    }
+  };
+
+  const handleDeleteRoom = async (roomId: string) => {
+    try {
+      const res = await fetch(`/api/rooms/by-id/${roomId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        mutate("/api/rooms");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la suppression de la salle:", error);
+    }
+  };
+
+  // Composant Dialog pour éditer un bâtiment
+  const EditBuildingDialog = ({ building }: { building: { _id: string; name: string; address?: string; totalFloors?: number } }) => {
+    const [open, setOpen] = useState(false);
+    const [isPending, startTransition] = useTransition();
+    const [form, setForm] = useState({
+      name: building.name || "",
+      address: building.address || "",
+      totalFloors: building.totalFloors?.toString() || "",
+    });
+
+    // Réinitialiser le formulaire quand le dialog s'ouvre
+    useEffect(() => {
+      if (open) {
+        setForm({
+          name: building.name || "",
+          address: building.address || "",
+          totalFloors: building.totalFloors?.toString() || "",
+        });
+      }
+    }, [open, building]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      startTransition(async () => {
+        const res = await fetch(`/api/buildings/by-id/${building._id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: form.name || undefined,
+            address: form.address || undefined,
+            totalFloors: form.totalFloors === "" ? undefined : Number(form.totalFloors),
+          }),
+        });
+        if (res.ok) {
+          mutate("/api/buildings");
+          setOpen(false);
+        }
+      });
+    };
+
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="sm">Modifier</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier "{building.name}"</DialogTitle>
+            <DialogDescription>Mettre à jour les informations du bâtiment</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nom</Label>
+              <Input
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Adresse</Label>
+              <Input
+                value={form.address}
+                onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+                placeholder="Optionnel"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Étages totaux</Label>
+              <Input
+                type="number"
+                min={1}
+                max={100}
+                value={form.totalFloors}
+                onChange={(e) => setForm((f) => ({ ...f, totalFloors: e.target.value }))}
+                placeholder="Optionnel"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Enregistrement..." : "Enregistrer"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  // Composant Dialog pour éditer une salle
+  const CreateBuildingDialog = () => {
+    const [open, setOpen] = useState(false);
+    const [isPending, startTransition] = useTransition();
+    const [form, setForm] = useState({
+      name: "",
+      address: "",
+      totalFloors: "",
+    });
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      startTransition(async () => {
+        const res = await fetch("/api/buildings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: form.name,
+            address: form.address || undefined,
+            totalFloors: form.totalFloors === "" ? undefined : Number(form.totalFloors),
+          }),
+        });
+        if (res.ok) {
+          mutate("/api/buildings");
+          setForm({ name: "", address: "", totalFloors: "" });
+          setOpen(false);
+        }
+      });
+    };
+
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button className="w-full">
+            <Home className="h-4 w-4 mr-2" />
+            Nouveau bâtiment
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Créer un bâtiment</DialogTitle>
+            <DialogDescription>Ajouter un nouveau bâtiment au campus</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nom du bâtiment *</Label>
+              <Input
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="Bâtiment A"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Adresse</Label>
+              <Input
+                value={form.address}
+                onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+                placeholder="123 Rue de l'Université"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Étages totaux</Label>
+              <Input
+                type="number"
+                min={1}
+                max={100}
+                value={form.totalFloors}
+                onChange={(e) => setForm((f) => ({ ...f, totalFloors: e.target.value }))}
+                placeholder="5"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Création..." : "Créer"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  const CreateRoomDialog = () => {
+    const [open, setOpen] = useState(false);
+    const [isPending, startTransition] = useTransition();
+    const [form, setForm] = useState({
+      buildingId: "",
+      name: "",
+      floor: "",
+    });
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      startTransition(async () => {
+        const res = await fetch("/api/rooms", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            buildingId: form.buildingId,
+            name: form.name,
+            floor: form.floor === "" ? undefined : Number(form.floor),
+          }),
+        });
+        if (res.ok) {
+          mutate("/api/rooms");
+          setForm({ buildingId: "", name: "", floor: "" });
+          setOpen(false);
+        }
+      });
+    };
+
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button className="w-full" variant="outline">
+            <Settings2 className="h-4 w-4 mr-2" />
+            Nouvelle salle
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Créer une salle</DialogTitle>
+            <DialogDescription>Ajouter une nouvelle salle à un bâtiment</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Bâtiment *</Label>
+              <Select
+                value={form.buildingId}
+                onValueChange={(v) => setForm((f) => ({ ...f, buildingId: v }))}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir un bâtiment" />
+                </SelectTrigger>
+                <SelectContent>
+                  {buildings.map((b) => (
+                    <SelectItem key={b._id} value={b._id}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Nom de la salle *</Label>
+              <Input
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="Salle 101"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Étage</Label>
+              <Input
+                type="number"
+                value={form.floor}
+                onChange={(e) => setForm((f) => ({ ...f, floor: e.target.value }))}
+                placeholder="1"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Création..." : "Créer"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  const CreateDeviceDialog = () => {
+    const [open, setOpen] = useState(false);
+    const [isPending, startTransition] = useTransition();
+    const [form, setForm] = useState({
+      serialNumber: "",
+      name: "",
+      roomId: "",
+    });
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      startTransition(async () => {
+        const res = await fetch("/api/devices", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            serialNumber: form.serialNumber,
+            name: form.name || undefined,
+            roomId: form.roomId || undefined,
+          }),
+        });
+        if (res.ok) {
+          mutate("/api/devices");
+          setForm({ serialNumber: "", name: "", roomId: "" });
+          setOpen(false);
+        }
+      });
+    };
+
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button className="w-full" variant="outline">
+            <Radio className="h-4 w-4 mr-2" />
+            Nouveau capteur
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Créer un capteur</DialogTitle>
+            <DialogDescription>Ajouter un nouveau capteur/device</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Numéro de série *</Label>
+              <Input
+                value={form.serialNumber}
+                onChange={(e) => setForm((f) => ({ ...f, serialNumber: e.target.value }))}
+                placeholder="ESP32-001"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Nom</Label>
+              <Input
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="Capteur Salle 101"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Salle</Label>
+              <Select
+                value={form.roomId}
+                onValueChange={(v) => setForm((f) => ({ ...f, roomId: v }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir une salle" />
+                </SelectTrigger>
+                <SelectContent>
+                  {rooms.map((r) => (
+                    <SelectItem key={r._id} value={r._id}>
+                      {r.name} {r.buildingId?.name ? `- ${r.buildingId.name}` : ""}{" "}
+                      {r.floor !== undefined ? `(Étage ${r.floor})` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Création..." : "Créer"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  const EditRoomDialog = ({ room }: { room: any }) => {
+    const [open, setOpen] = useState(false);
+    const [isPending, startTransition] = useTransition();
+    const [form, setForm] = useState({
+      name: room.name || "",
+      floor: room.floor?.toString() || "",
+      currentStatus: room?.currentStatus || "",
+    });
+
+    // Réinitialiser le formulaire quand le dialog s'ouvre
+    useEffect(() => {
+      if (open) {
+        setForm({
+          name: room.name || "",
+          floor: room.floor?.toString() || "",
+          currentStatus: room?.currentStatus || "",
+        });
+      }
+    }, [open, room]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      startTransition(async () => {
+        const res = await fetch(`/api/rooms/by-id/${room._id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: form.name || undefined,
+            floor: form.floor === "" ? undefined : Number(form.floor),
+            currentStatus: form.currentStatus || undefined,
+          }),
+        });
+        if (res.ok) {
+          mutate("/api/rooms");
+          setOpen(false);
+        }
+      });
+    };
+
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="sm">Modifier</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier "{room.name}"</DialogTitle>
+            <DialogDescription>Mettre à jour les informations de la salle</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nom</Label>
+              <Input
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Étage</Label>
+              <Input
+                type="number"
+                value={form.floor}
+                onChange={(e) => setForm((f) => ({ ...f, floor: e.target.value }))}
+                placeholder="Optionnel"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Statut courant</Label>
+              <Select
+                value={form.currentStatus}
+                onValueChange={(v) => setForm((f) => ({ ...f, currentStatus: v }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="AVAILABLE">AVAILABLE</SelectItem>
+                  <SelectItem value="OCCUPIED">OCCUPIED</SelectItem>
+                  <SelectItem value="UNKNOWN">UNKNOWN</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Enregistrement..." : "Enregistrer"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   const DeviceRow = ({ device }: { device: Device }) => {
     const isOnline = device.status === "ONLINE";
     const [open, setOpen] = useState(false);
@@ -533,10 +837,11 @@ function AdminPageContent() {
           {device.lastSeenAt ? new Date(device.lastSeenAt).toLocaleString() : "—"}
         </TableCell>
         <TableCell className="text-right">
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="sm">Modifier</Button>
-            </DialogTrigger>
+          <div className="flex items-center justify-end gap-2">
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm">Modifier</Button>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Configurer le device</DialogTitle>
@@ -657,6 +962,32 @@ function AdminPageContent() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Supprimer ce capteur ?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Cette action est irréversible. Le capteur "{device.name || device.serialNumber}" sera définitivement supprimé.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => handleDeleteDevice(device._id)}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Supprimer
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          </div>
         </TableCell>
       </TableRow>
     );
@@ -672,7 +1003,7 @@ function AdminPageContent() {
           </Button>
         </Link>
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-foreground">Administration</h1>
+          <h1 className="text-xl md:text-3xl font-bold text-foreground">Administration</h1>
           <Link
             href="/history"
             className="text-sm text-primary underline underline-offset-4 hover:text-primary/80"
@@ -778,147 +1109,10 @@ function AdminPageContent() {
           <CardTitle>Création rapide</CardTitle>
           <CardDescription>Ajouter un bâtiment, une salle ou un capteur</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-6 md:grid-cols-3">
-          <form className="space-y-3" onSubmit={submitBuilding}>
-            <p className="text-sm font-medium text-foreground">Nouveau bâtiment</p>
-            <div className="space-y-2">
-              <Label>Nom du bâtiment</Label>
-              <Input
-                placeholder="Bâtiment A"
-                value={buildingForm.name}
-                onChange={(e) => setBuildingForm((f) => ({ ...f, name: e.target.value }))}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Adresse</Label>
-              <Input
-                placeholder="123 Rue ..."
-                value={buildingForm.address}
-                onChange={(e) => setBuildingForm((f) => ({ ...f, address: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Étages totaux</Label>
-              <Input
-                type="number"
-                min={1}
-                max={100}
-                value={buildingForm.totalFloors}
-                onChange={(e) =>
-                  setBuildingForm((f) => ({
-                    ...f,
-                    totalFloors: Number(e.target.value),
-                  }))
-                }
-              />
-            </div>
-            {buildingForm.error && (
-              <p className="text-sm text-red-600">{buildingForm.error}</p>
-            )}
-            {buildingForm.message && (
-              <p className="text-sm text-green-600">{buildingForm.message}</p>
-            )}
-            <Button type="submit" className="w-full" disabled={buildingForm.pending}>
-              {buildingForm.pending ? "Création..." : "Créer le bâtiment"}
-            </Button>
-          </form>
-
-          <form className="space-y-3" onSubmit={submitRoom}>
-            <p className="text-sm font-medium text-foreground">Nouvelle salle</p>
-            <div className="space-y-2">
-              <Label>Bâtiment</Label>
-              <Select
-                value={roomForm.buildingId}
-                onValueChange={(v) => setRoomForm((f) => ({ ...f, buildingId: v }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Choisir un bâtiment" />
-                </SelectTrigger>
-                <SelectContent>
-                  {buildings.map((b) => (
-                    <SelectItem key={b._id} value={b._id}>
-                      {b.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Nom de la salle</Label>
-              <Input
-                placeholder="Salle 101"
-                value={roomForm.name}
-                onChange={(e) => setRoomForm((f) => ({ ...f, name: e.target.value }))}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Étage</Label>
-              <Input
-                type="number"
-                value={roomForm.floor}
-                onChange={(e) => setRoomForm((f) => ({ ...f, floor: Number(e.target.value) }))}
-              />
-            </div>
-            {roomForm.error && (
-              <p className="text-sm text-red-600">{roomForm.error}</p>
-            )}
-            {roomForm.message && (
-              <p className="text-sm text-green-600">{roomForm.message}</p>
-            )}
-            <Button type="submit" className="w-full" disabled={roomForm.pending}>
-              {roomForm.pending ? "Création..." : "Créer la salle"}
-            </Button>
-          </form>
-
-          <form className="space-y-3" onSubmit={submitDevice}>
-            <p className="text-sm font-medium text-foreground">Nouveau capteur</p>
-            <div className="space-y-2">
-              <Label>Numéro de série</Label>
-              <Input
-                placeholder="ESP32-001"
-                value={deviceForm.serialNumber}
-                onChange={(e) => setDeviceForm((f) => ({ ...f, serialNumber: e.target.value }))}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Nom</Label>
-              <Input
-                placeholder="Capteur Salle 101"
-                value={deviceForm.name}
-                onChange={(e) => setDeviceForm((f) => ({ ...f, name: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Salle</Label>
-              <Select
-                value={deviceForm.roomId}
-                onValueChange={(v) => setDeviceForm((f) => ({ ...f, roomId: v }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Choisir une salle" />
-                </SelectTrigger>
-                <SelectContent>
-                  {rooms.map((r) => (
-                    <SelectItem key={r._id} value={r._id}>
-                      {r.name} {r.buildingId?.name ? `- ${r.buildingId.name}` : ""} {r.floor !== undefined ? `(Étage ${r.floor})` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {deviceForm.error && (
-              <p className="text-sm text-red-600">{deviceForm.error}</p>
-            )}
-            {deviceForm.message && (
-              <p className="text-sm text-green-600">{deviceForm.message}</p>
-            )}
-            <Button type="submit" className="w-full" disabled={deviceForm.pending}>
-              {deviceForm.pending ? "Création..." : "Créer le capteur"}
-            </Button>
-          </form>
+        <CardContent className="grid gap-4 md:grid-cols-3">
+          <CreateBuildingDialog />
+          <CreateRoomDialog />
+          <CreateDeviceDialog />
         </CardContent>
       </Card>
 
@@ -928,127 +1122,104 @@ function AdminPageContent() {
           <CardDescription>Mises à jour rapides des entités existantes</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6 md:grid-cols-2">
-          <form className="space-y-3" onSubmit={submitEditBuilding}>
-            <p className="text-sm font-medium text-foreground">Bâtiment</p>
+          {/* Liste des bâtiments */}
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-foreground">Bâtiments</p>
             <div className="space-y-2">
-              <Label>Choisir un bâtiment</Label>
-              <Select
-                value={editBuildingForm.id}
-                onValueChange={(v) => setEditBuildingForm((f) => ({ ...f, id: v }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Bâtiment" />
-                </SelectTrigger>
-                <SelectContent>
-                  {buildings.map((b) => (
-                    <SelectItem key={b._id} value={b._id}>
-                      {b.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {buildings.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Aucun bâtiment</p>
+              ) : (
+                buildings.map((building) => (
+                  <div
+                    key={building._id}
+                    className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50"
+                  >
+                    <span className="text-sm font-medium">{building.name}</span>
+                    <div className="flex gap-2">
+                      <EditBuildingDialog building={building} />
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Supprimer "{building.name}" ?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Cette action est irréversible. Toutes les salles associées perdront leur référence.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteBuilding(building._id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Supprimer
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
-            <div className="space-y-2">
-              <Label>Nom</Label>
-              <Input
-                placeholder="Nom"
-                value={editBuildingForm.name}
-                onChange={(e) => setEditBuildingForm((f) => ({ ...f, name: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Adresse</Label>
-              <Input
-                placeholder="Adresse"
-                value={editBuildingForm.address}
-                onChange={(e) => setEditBuildingForm((f) => ({ ...f, address: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Étages totaux</Label>
-              <Input
-                type="number"
-                min={1}
-                max={100}
-                value={editBuildingForm.totalFloors}
-                onChange={(e) => setEditBuildingForm((f) => ({ ...f, totalFloors: e.target.value }))}
-              />
-            </div>
-            {editBuildingForm.error && <p className="text-sm text-red-600">{editBuildingForm.error}</p>}
-            {editBuildingForm.message && <p className="text-sm text-green-600">{editBuildingForm.message}</p>}
-            <Button type="submit" className="w-full" disabled={editBuildingForm.pending}>
-              {editBuildingForm.pending ? "Mise à jour..." : "Mettre à jour le bâtiment"}
-            </Button>
-          </form>
-
-          <form className="space-y-3" onSubmit={submitEditRoom}>
-            <p className="text-sm font-medium text-foreground">Salle</p>
-            <div className="space-y-2">
-              <Label>Choisir une salle</Label>
-              <Select
-                value={editRoomForm.id}
-                onValueChange={(v) => {
-                  const room = rooms.find((r) => r._id === v);
-                  setEditRoomForm((f) => ({
-                    ...f,
-                    id: v,
-                    name: room?.name ?? f.name,
-                    floor: room?.floor?.toString() ?? f.floor,
-        currentStatus: (room as any)?.currentStatus || f.currentStatus,
-                  }));
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Salle" />
-                </SelectTrigger>
-                <SelectContent>
-                  {rooms.map((r) => (
-                    <SelectItem key={r._id} value={r._id}>
-                      {r.name} {r.buildingId?.name ? `- ${r.buildingId.name}` : ""}{" "}
-                      {r.floor !== undefined ? `(Étage ${r.floor})` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Nom</Label>
-              <Input
-                placeholder="Nom"
-                value={editRoomForm.name}
-                onChange={(e) => setEditRoomForm((f) => ({ ...f, name: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Étage</Label>
-              <Input
-                type="number"
-                value={editRoomForm.floor}
-                onChange={(e) => setEditRoomForm((f) => ({ ...f, floor: e.target.value }))}
-              />
-            </div>
-          <div className="space-y-2">
-            <Label>Statut courant</Label>
-            <Select
-              value={editRoomForm.currentStatus}
-              onValueChange={(v) => setEditRoomForm((f) => ({ ...f, currentStatus: v }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="AVAILABLE">AVAILABLE</SelectItem>
-                <SelectItem value="OCCUPIED">OCCUPIED</SelectItem>
-                <SelectItem value="UNKNOWN">UNKNOWN</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
-            {editRoomForm.error && <p className="text-sm text-red-600">{editRoomForm.error}</p>}
-            {editRoomForm.message && <p className="text-sm text-green-600">{editRoomForm.message}</p>}
-            <Button type="submit" className="w-full" disabled={editRoomForm.pending}>
-              {editRoomForm.pending ? "Mise à jour..." : "Mettre à jour la salle"}
-            </Button>
-          </form>
+
+          {/* Liste des salles */}
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-foreground">Salles</p>
+            <div className="space-y-2">
+              {rooms.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Aucune salle</p>
+              ) : (
+                rooms.map((room) => (
+                  <div
+                    key={room._id}
+                    className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50"
+                  >
+                    <div>
+                      <span className="text-sm font-medium">{room.name}</span>
+                      {room.buildingId?.name && (
+                        <span className="text-xs text-muted-foreground ml-2">
+                          - {room.buildingId.name}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <EditRoomDialog room={room} />
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Supprimer "{room.name}" ?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Cette action est irréversible. Tous les capteurs associés perdront leur référence.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteRoom(room._id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Supprimer
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
