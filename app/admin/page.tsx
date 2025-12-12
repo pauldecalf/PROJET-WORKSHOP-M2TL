@@ -3,7 +3,7 @@
 import { useState, useTransition, useEffect } from "react";
 import useSWR from "swr";
 import Link from "next/link";
-import { Radio, Settings2, Power, PowerOff, ArrowLeft, Home, Trash2 } from "lucide-react";
+import { Radio, Settings2, Power, PowerOff, ArrowLeft, Home, Trash2, UserPlus } from "lucide-react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -677,6 +677,126 @@ function AdminPageContent() {
     );
   };
 
+  const CreateUserDialog = () => {
+    const [open, setOpen] = useState(false);
+    const [isPending, startTransition] = useTransition();
+    const [error, setError] = useState("");
+    const [form, setForm] = useState({
+      email: "",
+      password: "",
+      displayName: "",
+      role: "STUDENT",
+    });
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setError("");
+      startTransition(async () => {
+        try {
+          const res = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: form.email,
+              password: form.password,
+              displayName: form.displayName || undefined,
+              role: form.role,
+            }),
+          });
+          
+          const data = await res.json();
+          
+          if (!res.ok) {
+            setError(data.error || "Erreur lors de la création du compte");
+            return;
+          }
+          
+          // Succès
+          setForm({ email: "", password: "", displayName: "", role: "STUDENT" });
+          setOpen(false);
+          // Note: Pas de mutate car on n'a pas de liste d'utilisateurs pour l'instant
+        } catch (err: any) {
+          setError(err.message || "Erreur lors de la création du compte");
+        }
+      });
+    };
+
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button className="w-full" variant="default">
+            <UserPlus className="h-4 w-4 mr-2" />
+            Nouveau compte
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Créer un compte utilisateur</DialogTitle>
+            <DialogDescription>Créer un nouveau compte superviseur ou étudiant</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Email *</Label>
+              <Input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                placeholder="utilisateur@campus.fr"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Mot de passe *</Label>
+              <Input
+                type="password"
+                value={form.password}
+                onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                placeholder="Minimum 8 caractères"
+                minLength={8}
+                required
+              />
+              <p className="text-xs text-muted-foreground">Minimum 8 caractères</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Nom d'affichage</Label>
+              <Input
+                value={form.displayName}
+                onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
+                placeholder="Jean Dupont"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Rôle *</Label>
+              <Select
+                value={form.role}
+                onValueChange={(v) => setForm((f) => ({ ...f, role: v }))}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir un rôle" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SUPERVISOR">Superviseur (Admin)</SelectItem>
+                  <SelectItem value="STUDENT">Étudiant</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {error && (
+              <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
+                {error}
+              </div>
+            )}
+            <DialogFooter>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Création..." : "Créer le compte"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   const EditRoomDialog = ({ room }: { room: any }) => {
     const [open, setOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
@@ -1113,6 +1233,16 @@ function AdminPageContent() {
           <CreateBuildingDialog />
           <CreateRoomDialog />
           <CreateDeviceDialog />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Gestion des utilisateurs</CardTitle>
+          <CardDescription>Créer et gérer les comptes utilisateurs</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CreateUserDialog />
         </CardContent>
       </Card>
 
